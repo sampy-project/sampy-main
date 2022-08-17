@@ -4,17 +4,129 @@ import time
 
 from .jit_compiled_functions import (random_walk_on_sphere_set_position_based_on_graph,
                                      random_walk_on_sphere_start_random_walk_uniform_prob,
+                                     random_walk_on_sphere_start_random_walk_uniform_prob_return_new_walkers,
                                      conditional_random_walk_on_sphere_start_random_walk_uniform_prob,
+                                     conditional_random_walk_on_sphere_start_random_walk_uniform_prob_return_new_walkers,
                                      random_walk_on_sphere_set_initial_dir_to_north,
                                      random_walk_on_sphere_deviate_direction,
                                      random_walk_propose_step_gamma_law,
                                      _temp_random_walk_on_sphere_exit_random_walk_based_on_k)
 
 # ---------------------------------------------------------------------------------------------------------------------
-# This section of Sampy is still a work in progress and will have its own dedicated publication introducing the
-# "spherical random walk" coded here. In the future, more usual options like correlated and biased 2D random walks will
-# be added here as well.
+# This section of Sampy is a work in Progress
 # ---------------------------------------------------------------------------------------------------------------------
+
+
+class SphericalRandomWalk:
+    """
+    This class 
+    """
+    def __init__(self, px=0., py=0., pz=0., dx=0., dy=0., dz=0., **kwargs):
+        self.df_population['is_on_random_walk'] = False
+        self.df_population['px'] = px
+        self.df_population['py'] = py
+        self.df_population['pz'] = pz
+        self.df_population['dx'] = dx
+        self.df_population['dy'] = dy
+        self.df_population['dz'] = dz
+
+        self.dict_default_values['is_on_random_walk'] = False
+        self.dict_default_values['px'] = px
+        self.dict_default_values['py'] = py
+        self.dict_default_values['pz'] = pz
+        self.dict_default_values['dx'] = dx
+        self.dict_default_values['dy'] = dy
+        self.dict_default_values['dz'] = dz
+
+    def set_dtype_of_positions_and_directions(self, targeted_dtype='float64'):
+        """
+        The computations needed for spherical random walks, as they are now, are really sensitive to rounding errors.
+        Therefore, it may be needed to increase the precision of columns px, py, pz, dx, dy and dz to float64. This
+        method is a shortcut for doing it on all 6 columns. This method won't have any effect if there is no agents.
+
+        :param targeted_dtype: optional, string, default 'float64'. The new datatype for the position and direction
+                               columns.
+
+        :return: True if the columns were not empty and the assignement succeded, False otherwise.
+        """
+        if self.df_population.is_empty:
+            return False
+
+        self.df_population.change_type('px', targeted_dtype)
+        self.df_population.change_type('py', targeted_dtype)
+        self.df_population.change_type('pz', targeted_dtype)
+        self.df_population.change_type('dx', targeted_dtype)
+        self.df_population.change_type('dy', targeted_dtype)
+        self.df_population.change_type('dz', targeted_dtype)
+
+        return True
+
+    def set_position_based_on_graph(self, arr_selected_agent,
+                                    agent_position_attribute='position',
+                                    graph_coord_x_attribute='coord_x',
+                                    graph_coord_y_attribute='coord_y',
+                                    graph_coord_z_attribute='coord_z'):
+        """
+        Set the position of the selected agents using coordinates of the graph vertex the agent is currently on.
+
+        :param arr_selected_agent: 1D array of bool, saying which agents should have their coordinates updated according
+                                   to their position on the graph.
+        :param agent_position_attribute: optional, string, default 'position'. Name of the attribute position column in
+                                         the df_population dataframe in the agent class.
+        :param graph_coord_x_attribute: optional, string, default 'coord_x'. X coordinate of the graph vertices.
+        :param graph_coord_y_attribute: optional, string, default 'coord_y'. Y coordinate of the graph vertices.
+        :param graph_coord_z_attribute: optional, string, default 'coord_z'. Z coordinate of the graph vertices.
+        """
+        random_walk_on_sphere_set_position_based_on_graph(arr_selected_agent,
+                                                          self.df_population[agent_position_attribute],
+                                                          self.df_population['px'],
+                                                          self.df_population['py'],
+                                                          self.df_population['pz'],
+                                                          self.graph.df_attributes[graph_coord_x_attribute],
+                                                          self.graph.df_attributes[graph_coord_y_attribute],
+                                                          self.graph.df_attributes[graph_coord_z_attribute])
+
+    def start_random_walk_uniform_prob(self, prob, condition=None, return_arr_new_walker=True):
+        """
+        Perform a uniform test for each agent. Successful agents have their attribute 'is_on_random_walk' set to true.
+
+        :param prob: float, probability for all agent to start a random walk
+        :param condition: optional, 1D array of bool, default None.
+        :param return_arr_new_walker: optional, boolean, default True.
+
+        :return: None if return_arr_new_walker is False, a 1D array of bool otherwise.
+        """
+        if condition is None:
+            arr_start_rw = np.random.uniform(0, 1, (self.df_population.shape[0],)) <= prob
+            if return_arr_new_walker:
+                return random_walk_on_sphere_start_random_walk_uniform_prob_return_new_walkers(arr_start_rw,
+                                                                                self.df_population['is_on_random_walk'])
+            random_walk_on_sphere_start_random_walk_uniform_prob(arr_start_rw, self.df_population['is_on_random_walk'])
+        else:
+            arr_start_rw = np.random.uniform(0, 1, (condition.sum(),)) <= prob
+            if return_arr_new_walker:
+                return conditional_random_walk_on_sphere_start_random_walk_uniform_prob_return_new_walkers(arr_start_rw,
+                                                                                                           self.df_population['is_on_random_walk'],
+                                                                                                           condition)
+            conditional_random_walk_on_sphere_start_random_walk_uniform_prob(arr_start_rw,
+                                                                             self.df_population['is_on_random_walk'],
+                                                                             condition)
+
+    def set_direction_to_north(self, arr_selected_agents):
+        """
+        Set the directions of the selected agents in the direction of the north pole (coordinates X and Y are 0.).
+        Agents located at the north or south pole have their initial direction set to (1., 0., 0.). Note that the
+        direction is a vector of norm 1.
+
+        :param arr_selected_agents: 1D array of bool
+        """
+        random_walk_on_sphere_set_initial_dir_to_north(arr_selected_agents,
+                                                       self.df_population['px'],
+                                                       self.df_population['py'],
+                                                       self.df_population['pz'],
+                                                       self.df_population['dx'],
+                                                       self.df_population['dy'],
+                                                       self.df_population['dz'])
 
 
 class ProposedStep:
@@ -120,66 +232,66 @@ class RandomWalkOnSphere:
         self.radius = radius
         self.unit = unit
 
-    def set_position_based_on_graph(self, arr_selected_agent, use_radius=True, agent_position_attribute='position',
-                                    graph_coord_x_attribute='coord_x',
-                                    graph_coord_y_attribute='coord_y',
-                                    graph_coord_z_attribute='coord_z'):
-        """
-        Set the position of the selected agents using coordinates of the graph vertex the agent is currently on.
-        :param arr_selected_agent: 1D array of bool, saying which agents should have their coordinates updated according
-            to their position on the graph.
-        :param use_radius: Optional, boolean, default True.
-        :param agent_position_attribute: option, string, default 'position'. Name of the attribute position column in
-            the df_population dataframe in the agent class.
-        :param graph_coord_x_attribute:
-        :param graph_coord_y_attribute:
-        :param graph_coord_z_attribute:
-        """
-        arr_selected_agent = np.array(arr_selected_agent, dtype=bool)
-        arr_pos_agent = np.array(self.df_population[agent_position_attribute], dtype=np.int32)
-        coord_x = np.array(self.df_population['coord_x'], dtype=np.float)
-        coord_y = np.array(self.df_population['coord_y'], dtype=np.float)
-        coord_z = np.array(self.df_population['coord_z'], dtype=np.float)
-        graph_coord_x = np.array(self.graph.df_attributes[graph_coord_x_attribute], dtype=np.float)
-        graph_coord_y = np.array(self.graph.df_attributes[graph_coord_y_attribute], dtype=np.float)
-        graph_coord_z = np.array(self.graph.df_attributes[graph_coord_z_attribute], dtype=np.float)
-        x, y, z = random_walk_on_sphere_set_position_based_on_graph(arr_selected_agent, arr_pos_agent, coord_x, coord_y,
-                                                                    coord_z, graph_coord_x, graph_coord_y, graph_coord_z)
-        if use_radius:
-            self.df_population['coord_x'] = self.df_population['coord_x'] + arr_selected_agent * \
-                                            (self.radius * x - self.df_population['coord_x'])
-            self.df_population['coord_y'] = self.df_population['coord_y'] + arr_selected_agent * \
-                                            (self.radius * y - self.df_population['coord_y'])
-            self.df_population['coord_z'] = self.df_population['coord_z'] + arr_selected_agent * \
-                                            (self.radius * z - self.df_population['coord_z'])
-        else:
-            self.df_population['coord_x'] = self.df_population['coord_x'] + arr_selected_agent * \
-                                            (x - self.df_population['coord_x'])
-            self.df_population['coord_y'] = self.df_population['coord_y'] + arr_selected_agent * \
-                                            (y - self.df_population['coord_y'])
-            self.df_population['coord_z'] = self.df_population['coord_z'] + arr_selected_agent * \
-                                            (z - self.df_population['coord_z'])
+    # def set_position_based_on_graph(self, arr_selected_agent, use_radius=True, agent_position_attribute='position',
+    #                                 graph_coord_x_attribute='coord_x',
+    #                                 graph_coord_y_attribute='coord_y',
+    #                                 graph_coord_z_attribute='coord_z'):
+    #     """
+    #     Set the position of the selected agents using coordinates of the graph vertex the agent is currently on.
+    #     :param arr_selected_agent: 1D array of bool, saying which agents should have their coordinates updated according
+    #         to their position on the graph.
+    #     :param use_radius: Optional, boolean, default True.
+    #     :param agent_position_attribute: option, string, default 'position'. Name of the attribute position column in
+    #         the df_population dataframe in the agent class.
+    #     :param graph_coord_x_attribute:
+    #     :param graph_coord_y_attribute:
+    #     :param graph_coord_z_attribute:
+    #     """
+    #     arr_selected_agent = np.array(arr_selected_agent, dtype=bool)
+    #     arr_pos_agent = np.array(self.df_population[agent_position_attribute], dtype=np.int32)
+    #     coord_x = np.array(self.df_population['coord_x'], dtype=np.float)
+    #     coord_y = np.array(self.df_population['coord_y'], dtype=np.float)
+    #     coord_z = np.array(self.df_population['coord_z'], dtype=np.float)
+    #     graph_coord_x = np.array(self.graph.df_attributes[graph_coord_x_attribute], dtype=np.float)
+    #     graph_coord_y = np.array(self.graph.df_attributes[graph_coord_y_attribute], dtype=np.float)
+    #     graph_coord_z = np.array(self.graph.df_attributes[graph_coord_z_attribute], dtype=np.float)
+    #     x, y, z = random_walk_on_sphere_set_position_based_on_graph(arr_selected_agent, arr_pos_agent, coord_x, coord_y,
+    #                                                                 coord_z, graph_coord_x, graph_coord_y, graph_coord_z)
+    #     if use_radius:
+    #         self.df_population['coord_x'] = self.df_population['coord_x'] + arr_selected_agent * \
+    #                                         (self.radius * x - self.df_population['coord_x'])
+    #         self.df_population['coord_y'] = self.df_population['coord_y'] + arr_selected_agent * \
+    #                                         (self.radius * y - self.df_population['coord_y'])
+    #         self.df_population['coord_z'] = self.df_population['coord_z'] + arr_selected_agent * \
+    #                                         (self.radius * z - self.df_population['coord_z'])
+    #     else:
+    #         self.df_population['coord_x'] = self.df_population['coord_x'] + arr_selected_agent * \
+    #                                         (x - self.df_population['coord_x'])
+    #         self.df_population['coord_y'] = self.df_population['coord_y'] + arr_selected_agent * \
+    #                                         (y - self.df_population['coord_y'])
+    #         self.df_population['coord_z'] = self.df_population['coord_z'] + arr_selected_agent * \
+    #                                         (z - self.df_population['coord_z'])
 
-    def start_random_walk_uniform_prob(self, prob, condition=None):
-        """
-        Perform a uniform test for eahc agent. Successful agents have their attribute 'is_on_random_walk' set to true.
-        :param prob: float, probability for all agent to start a random walk
-        :param condition: optional, 1D array of bool, default None. If not None, the size of this argument should be the
-            total number of agents, and the agent in row i will perform the test if and only if condition[i] is True.
-        :return: 1D array of bool telling which agents started random walk thanks to this method (excluding
-        """
-        arr_is_on_rw = np.array(self.df_population['is_on_random_walk'], dtype=bool)
-        if condition is None:
-            arr_start_rw = np.random.uniform(0, 1, (self.df_population.shape[0],)) <= prob
-            old = np.array(self.df_population['is_on_random_walk'].copy(), dtype=np.bool_)
-            new = random_walk_on_sphere_start_random_walk_uniform_prob(arr_start_rw, arr_is_on_rw)
-        else:
-            condition = np.array(condition, dtype=bool)
-            arr_start_rw = np.random.uniform(0, 1, (condition.sum(),)) <= prob
-            old = np.array(self.df_population['is_on_random_walk'].copy(), dtype=np.bool_)
-            new = conditional_random_walk_on_sphere_start_random_walk_uniform_prob(arr_start_rw, arr_is_on_rw, condition)
-        self.df_population['is_on_random_walk'] = new
-        return new & ~old
+    # def start_random_walk_uniform_prob(self, prob, condition=None):
+    #     """
+    #     Perform a uniform test for eahc agent. Successful agents have their attribute 'is_on_random_walk' set to true.
+    #     :param prob: float, probability for all agent to start a random walk
+    #     :param condition: optional, 1D array of bool, default None. If not None, the size of this argument should be the
+    #         total number of agents, and the agent in row i will perform the test if and only if condition[i] is True.
+    #     :return: 1D array of bool telling which agents started random walk thanks to this method (excluding
+    #     """
+    #     arr_is_on_rw = np.array(self.df_population['is_on_random_walk'], dtype=bool)
+    #     if condition is None:
+    #         arr_start_rw = np.random.uniform(0, 1, (self.df_population.shape[0],)) <= prob
+    #         old = np.array(self.df_population['is_on_random_walk'].copy(), dtype=np.bool_)
+    #         new = random_walk_on_sphere_start_random_walk_uniform_prob(arr_start_rw, arr_is_on_rw)
+    #     else:
+    #         condition = np.array(condition, dtype=bool)
+    #         arr_start_rw = np.random.uniform(0, 1, (condition.sum(),)) <= prob
+    #         old = np.array(self.df_population['is_on_random_walk'].copy(), dtype=np.bool_)
+    #         new = conditional_random_walk_on_sphere_start_random_walk_uniform_prob(arr_start_rw, arr_is_on_rw, condition)
+    #     self.df_population['is_on_random_walk'] = new
+    #     return new & ~old
 
     def _temp_exit_random_walk_based_on_k(self, arr_selected_agents, arr_pos_selected_agents, prob_settlement, alpha,
                                           arr_pop=None):
@@ -216,28 +328,28 @@ class RandomWalkOnSphere:
                                           arr_stop * (arr_pos_selected_agents - self.df_population['position'])
         return arr_stop
 
-    def set_direction_to_north(self, arr_selected_agents):
-        """
-        Set the directions of the selected agents in the direction of the north pole (coordinates X et Y are 0.). Agents
-        located at the north or south pole have their initial direction set to (1., 0., 0.).
-        :param arr_selected_agents:
-        """
-        arr_selected_agents = np.array(arr_selected_agents, dtype=bool)
-
-        pos_x = np.array(self.df_population['coord_x'], dtype=np.float)
-        pos_y = np.array(self.df_population['coord_y'], dtype=np.float)
-        pos_z = np.array(self.df_population['coord_z'], dtype=np.float)
-
-        dir_x = np.array(self.df_population['direction_x'], dtype=np.float)
-        dir_y = np.array(self.df_population['direction_y'], dtype=np.float)
-        dir_z = np.array(self.df_population['direction_z'], dtype=np.float)
-
-        dir_x, dir_y, dir_z = random_walk_on_sphere_set_initial_dir_to_north(arr_selected_agents, pos_x, pos_y,
-                                                                             pos_z, dir_x, dir_y, dir_z)
-
-        self.df_population['direction_x'] = dir_x
-        self.df_population['direction_y'] = dir_y
-        self.df_population['direction_z'] = dir_z
+    # def set_direction_to_north(self, arr_selected_agents):
+    #     """
+    #     Set the directions of the selected agents in the direction of the north pole (coordinates X et Y are 0.). Agents
+    #     located at the north or south pole have their initial direction set to (1., 0., 0.).
+    #     :param arr_selected_agents:
+    #     """
+    #     arr_selected_agents = np.array(arr_selected_agents, dtype=bool)
+    #
+    #     pos_x = np.array(self.df_population['coord_x'], dtype=np.float)
+    #     pos_y = np.array(self.df_population['coord_y'], dtype=np.float)
+    #     pos_z = np.array(self.df_population['coord_z'], dtype=np.float)
+    #
+    #     dir_x = np.array(self.df_population['direction_x'], dtype=np.float)
+    #     dir_y = np.array(self.df_population['direction_y'], dtype=np.float)
+    #     dir_z = np.array(self.df_population['direction_z'], dtype=np.float)
+    #
+    #     dir_x, dir_y, dir_z = random_walk_on_sphere_set_initial_dir_to_north(arr_selected_agents, pos_x, pos_y,
+    #                                                                          pos_z, dir_x, dir_y, dir_z)
+    #
+    #     self.df_population['direction_x'] = dir_x
+    #     self.df_population['direction_y'] = dir_y
+    #     self.df_population['direction_z'] = dir_z
 
     def set_direction_von_mises(self, arr_selected_agents, kappa):
         """

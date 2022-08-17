@@ -351,7 +351,6 @@ def random_walk_on_sphere_set_position_based_on_graph(arr_selected_agents, arr_p
             agent_coord_x[i] = graph_coord_x[ind_vertex]
             agent_coord_y[i] = graph_coord_y[ind_vertex]
             agent_coord_z[i] = graph_coord_z[ind_vertex]
-    return agent_coord_x, agent_coord_y, agent_coord_z
 
 
 @nb.njit
@@ -359,7 +358,17 @@ def random_walk_on_sphere_start_random_walk_uniform_prob(arr_start_rw, arr_iorw)
     for i in range(arr_start_rw.shape[0]):
         if arr_start_rw[i]:
             arr_iorw[i] = True
-    return arr_iorw
+
+
+@nb.njit
+def random_walk_on_sphere_start_random_walk_uniform_prob_return_new_walkers(arr_start_rw, arr_iorw):
+    arr_new_walkers = np.full(arr_iorw.shape, False, dtype=np.bool_)
+    for i in range(arr_start_rw.shape[0]):
+        if arr_start_rw[i]:
+            if not arr_iorw[i]:
+                arr_new_walkers[i] = True
+            arr_iorw[i] = True
+    return arr_new_walkers
 
 
 @nb.njit
@@ -370,11 +379,26 @@ def conditional_random_walk_on_sphere_start_random_walk_uniform_prob(arr_start_r
             if arr_start_rw[counter_arr_start_rw]:
                 arr_iorw[i] = True
             counter_arr_start_rw += 1
-    return arr_iorw
 
 
 @nb.njit
-def random_walk_on_sphere_set_initial_dir_to_north(arr_selected_agents, pos_x, pos_y, pos_z,
+def conditional_random_walk_on_sphere_start_random_walk_uniform_prob_return_new_walkers(arr_start_rw, arr_iorw,
+                                                                                        condition):
+    arr_new_walkers = np.full(arr_iorw.shape, False, dtype=np.bool_)
+    counter_arr_start_rw = 0
+    for i in range(arr_start_rw.shape[0]):
+        if condition[i]:
+            if arr_start_rw[counter_arr_start_rw]:
+                if not arr_iorw[i]:
+                    arr_new_walkers[i] = True
+                arr_iorw[i] = True
+            counter_arr_start_rw += 1
+    return arr_new_walkers
+
+
+@nb.njit
+def random_walk_on_sphere_set_initial_dir_to_north(arr_selected_agents,
+                                                   pos_x, pos_y, pos_z,
                                                    dir_x, dir_y, dir_z):
     for i in range(arr_selected_agents.shape[0]):
         if arr_selected_agents[i]:
@@ -383,15 +407,19 @@ def random_walk_on_sphere_set_initial_dir_to_north(arr_selected_agents, pos_x, p
                 dir_y[i] = 0.
                 dir_z[i] = 0.
             else:
+                norm_p = np.sqrt(pos_x[i]**2 + pos_y[i]**2 + pos_z[i]**2)
                 position = np.array([pos_x[i], pos_y[i], pos_z[i]])
-                position = position / np.linalg.norm(position)
-                direction = np.array([0., 0., 1.])
-                direction = direction - np.dot(direction, position) * position
-                direction = direction / np.linalg.norm(direction)
-                dir_x[i] = direction[0]
-                dir_y[i] = direction[1]
-                dir_z[i] = direction[2]
-    return dir_x, dir_y, dir_z
+                position = position / norm_p
+                # the direction toward the north at position is given, up to normalization, by the following formula
+                # (0, 0, 1) - <(0, 0, 1), position> position
+                # which leads to the following line
+                direction = np.array([-position[2] * position[0],
+                                      -position[2] * position[1],
+                                      1. - position[2] ** 2])
+                dir_norm = np.sqrt((direction[0] ** 2 + direction[1] ** 2 + direction[2] ** 2))
+                dir_x[i] = direction[0] / dir_norm
+                dir_y[i] = direction[1] / dir_norm
+                dir_z[i] = direction[2] / dir_norm
 
 
 @nb.njit

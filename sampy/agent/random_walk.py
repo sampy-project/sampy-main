@@ -8,18 +8,19 @@ from .jit_compiled_functions import (random_walk_on_sphere_set_position_based_on
                                      conditional_random_walk_on_sphere_start_random_walk_uniform_prob,
                                      conditional_random_walk_on_sphere_start_random_walk_uniform_prob_return_new_walkers,
                                      random_walk_on_sphere_set_initial_dir_to_north,
-                                     random_walk_on_sphere_deviate_direction,
-                                     random_walk_propose_step_gamma_law,
+                                     random_walk_on_sphere_deviate_direction_from_angles,
+                                     random_walk_on_sphere_propose_step_gamma_law,
+                                     random_walk_on_sphere_make_step_gamma_law,
+                                     random_walk_on_sphere_validate_step,
+                                     random_walk_on_sphere_validate_step_return_fail,
                                      _temp_random_walk_on_sphere_exit_random_walk_based_on_k)
-
-# ---------------------------------------------------------------------------------------------------------------------
-# This section of Sampy is a work in Progress
-# ---------------------------------------------------------------------------------------------------------------------
 
 
 class SphericalRandomWalk:
     """
-    This class 
+    This class give the ability for the agent to perform random walks on a sphere. The directions are preserved between
+    consecutive steps by using parallel transport. The associated technical background can be found in the publication
+    {in-preparation} by F. Viard, A. Allibert and P. Leighton.
     """
     def __init__(self, px=0., py=0., pz=0., dx=0., dy=0., dz=0., **kwargs):
         self.df_population['is_on_random_walk'] = False
@@ -128,59 +129,111 @@ class SphericalRandomWalk:
                                                        self.df_population['dy'],
                                                        self.df_population['dz'])
 
-
-class ProposedStep:
-    """
-    This class contains the information concerning a proposed random walk step. It is returned by the methods that
-    propose a new step for a randomly walking agent. It includes methods to check if the steps are valid with respect
-    to proximity objects.
-    """
-    def __init__(self, agent_object, arr_new_steps, pos_x, pos_y, pos_z, dir_x, dir_y, dir_z):
-        self.agent = agent_object
-        self.arr_new_steps = arr_new_steps
-        self.pos_x = pos_x
-        self.pos_y = pos_y
-        self.pos_z = pos_z
-        self.dir_x = dir_x
-        self.dir_y = dir_y
-        self.dir_z = dir_z
-
-    def get_array_remaining_steps(self):
-        return self.arr_new_steps
-
-    def is_step_allowed(self, proximity_class, condition_on_grid=None):
+    def set_direction_von_mises(self, arr_selected_agents, kappa):
         """
-        Check if the currently stored steps are valid with respect to a given proximity class
-        :param proximity_class: proximity class object
-        :param condition_on_grid: optional, 1D array of bool, default None. Add a condition on the nodes of the grid
-            used by the proximity class.
-        :return: array of boolean telling which steps are allowed
-        """
-        return proximity_class.is_step_allowed(self.arr_new_steps, self.pos_x, self.pos_y, self.pos_z,
-                                               condition_on_grid=condition_on_grid)
+        Set the direction of the selected agents by deviating their current direction by an angle given by von mises
+        distribution.
 
-    def validate_steps(self, arr_accepted_steps, update_arr_new_steps=True):
+        :param arr_selected_agents: 1D array of bool saying which agent should have their direction changed
+        :param kappa: kappa parameter for the von mises distribution. The hiher the value of Kappa, the smaller the
+                      deviation.
         """
-        Change the coordinates and direction of the agents whose steps have been accepted
-        :param arr_accepted_steps: 1D array of bool saying which agent have their step validated
-        :param update_arr_new_steps: optional, bool, default True. If set to True, the method will replace the attribute
-            arr_new_steps with a 1D array of bool saying which agent did not have their step validated. This especially
-            useful if one wants to check which steps are valid with respect to several successive proximity classes.
+        deviation_angles = np.random.vonmises(0, kappa, (arr_selected_agents.sum(),))
+        random_walk_on_sphere_deviate_direction_from_angles(deviation_angles, arr_selected_agents,
+                                                            self.df_population['px'],
+                                                            self.df_population['py'],
+                                                            self.df_population['pz'],
+                                                            self.df_population['dx'],
+                                                            self.df_population['dy'],
+                                                            self.df_population['dz'])
+
+    def make_step_using_gamma_law(self, arr_selected_agents, k, theta, radius,
+                                  list_proximity_classes=None, mode_proximity_test='AND',
+                                  return_agents_failed_making_step=False):
         """
-        self.agent.df_population['coord_x'] = self.agent.df_population['coord_x'] + \
-                                              arr_accepted_steps * (self.pos_x - self.agent.df_population['coord_x'])
-        self.agent.df_population['coord_y'] = self.agent.df_population['coord_y'] + \
-                                              arr_accepted_steps * (self.pos_y - self.agent.df_population['coord_y'])
-        self.agent.df_population['coord_z'] = self.agent.df_population['coord_z'] + \
-                                              arr_accepted_steps * (self.pos_z - self.agent.df_population['coord_z'])
-        self.agent.df_population['direction_x'] = self.agent.df_population['direction_x'] + \
-                                            arr_accepted_steps * (self.dir_x - self.agent.df_population['direction_x'])
-        self.agent.df_population['direction_y'] = self.agent.df_population['direction_y'] + \
-                                            arr_accepted_steps * (self.dir_y - self.agent.df_population['direction_y'])
-        self.agent.df_population['direction_z'] = self.agent.df_population['direction_z'] + \
-                                            arr_accepted_steps * (self.dir_z - self.agent.df_population['direction_z'])
-        if update_arr_new_steps:
-            self.arr_new_steps = self.arr_new_steps & ~arr_accepted_steps
+        The selected agents make a step, following their current direction with a step length given by a
+        Gamma distribution. The user can provide a list of proximity class to test if the step fails or succeed.
+
+        :param arr_selected_agents: 1D array of bool saying which agent should make a new step
+        :param k: shape parameter gamma law
+        :param theta: scale parameter gamma law
+        :param radius: float, radius of the sphere on which the agents live
+        :param list_proximity_classes: optional, list of proximity class, default None. If a list of proximity class is
+                                       provided, the method will check that each step is valid according to those
+                                       proximity class. If the list has more than one element, this test is done using
+                                       the methodology defined by the kwarg mode_proximity_test.
+        :param mode_proximity_test: optional, string, default 'AND'. Only two accepted values, that are 'AND' and 'OR'.
+                                    If 'AND', a step is valid if and only if all the proximity classes validate it.
+                                    IF 'OR', a step is valid if at least one of the proximity classes validate it.
+        :param return_agents_failed_making_step: optional, boolean, default False. If True, returns a 1D array of bool
+                                                 Saying which agent failed their step.
+                                                 WARNING: in the resulting array res, res[i] is True if and only if
+                                                          the agent at line i had the opportunity to make a step but
+                                                          failed to do so. If res[i] is False, then it means the agent
+                                                          at line i either was not selected to make a step, or succeded
+                                                          to do so.
+
+        :return: if return_agents_failed_making_step is True, 1D array of bool. None otherwise.
+        """
+        gamma_sample = np.random.gamma(k, theta, size=(arr_selected_agents.sum(),))
+
+        if list_proximity_classes is not None:
+
+            new_px, new_py, new_pz, new_dx, new_dy, new_dz = random_walk_on_sphere_propose_step_gamma_law(
+                                                                                  arr_selected_agents, gamma_sample,
+                                                                                  self.df_population['px'],
+                                                                                  self.df_population['py'],
+                                                                                  self.df_population['pz'],
+                                                                                  self.df_population['dx'],
+                                                                                  self.df_population['dy'],
+                                                                                  self.df_population['dz'],
+                                                                                  radius)
+
+            list_arr_successful_steps = []
+            for proximity_class in list_proximity_classes:
+                list_arr_successful_steps.append(proximity_class.is_pos_allowed(new_px, new_py, new_pz))
+            if mode_proximity_test.lower() == 'and':
+                for i, arr in enumerate(list_arr_successful_steps):
+                    if i == 0:
+                        continue
+                    list_arr_successful_steps[0] = list_arr_successful_steps[0] & arr
+            elif mode_proximity_test.lower() == 'or':
+                for i, arr in enumerate(list_arr_successful_steps):
+                    if i == 0:
+                        continue
+                    list_arr_successful_steps[0] = list_arr_successful_steps[0] | arr
+            else:
+                raise ValueError("The value for mode_proximity_test kwarg should either be 'AND' or 'OR'.")
+
+            if return_agents_failed_making_step:
+                return random_walk_on_sphere_validate_step_return_fail(arr_selected_agents,
+                                                                       list_arr_successful_steps[0],
+                                                                       new_px, new_py, new_pz, new_dx, new_dy, new_dz,
+                                                                       self.df_population['px'],
+                                                                       self.df_population['py'],
+                                                                       self.df_population['pz'],
+                                                                       self.df_population['dx'],
+                                                                       self.df_population['dy'],
+                                                                       self.df_population['dz'])
+
+            random_walk_on_sphere_validate_step(arr_selected_agents, list_arr_successful_steps[0],
+                                                new_px, new_py, new_pz, new_dx, new_dy, new_dz,
+                                                self.df_population['px'],
+                                                self.df_population['py'],
+                                                self.df_population['pz'],
+                                                self.df_population['dx'],
+                                                self.df_population['dy'],
+                                                self.df_population['dz'])
+
+        else:
+            random_walk_on_sphere_make_step_gamma_law(arr_selected_agents, gamma_sample,
+                                                      self.df_population['px'],
+                                                      self.df_population['py'],
+                                                      self.df_population['pz'],
+                                                      self.df_population['dx'],
+                                                      self.df_population['dy'],
+                                                      self.df_population['dz'],
+                                                      radius)
 
 
 class RandomWalkOnSphere:
@@ -232,67 +285,6 @@ class RandomWalkOnSphere:
         self.radius = radius
         self.unit = unit
 
-    # def set_position_based_on_graph(self, arr_selected_agent, use_radius=True, agent_position_attribute='position',
-    #                                 graph_coord_x_attribute='coord_x',
-    #                                 graph_coord_y_attribute='coord_y',
-    #                                 graph_coord_z_attribute='coord_z'):
-    #     """
-    #     Set the position of the selected agents using coordinates of the graph vertex the agent is currently on.
-    #     :param arr_selected_agent: 1D array of bool, saying which agents should have their coordinates updated according
-    #         to their position on the graph.
-    #     :param use_radius: Optional, boolean, default True.
-    #     :param agent_position_attribute: option, string, default 'position'. Name of the attribute position column in
-    #         the df_population dataframe in the agent class.
-    #     :param graph_coord_x_attribute:
-    #     :param graph_coord_y_attribute:
-    #     :param graph_coord_z_attribute:
-    #     """
-    #     arr_selected_agent = np.array(arr_selected_agent, dtype=bool)
-    #     arr_pos_agent = np.array(self.df_population[agent_position_attribute], dtype=np.int32)
-    #     coord_x = np.array(self.df_population['coord_x'], dtype=np.float)
-    #     coord_y = np.array(self.df_population['coord_y'], dtype=np.float)
-    #     coord_z = np.array(self.df_population['coord_z'], dtype=np.float)
-    #     graph_coord_x = np.array(self.graph.df_attributes[graph_coord_x_attribute], dtype=np.float)
-    #     graph_coord_y = np.array(self.graph.df_attributes[graph_coord_y_attribute], dtype=np.float)
-    #     graph_coord_z = np.array(self.graph.df_attributes[graph_coord_z_attribute], dtype=np.float)
-    #     x, y, z = random_walk_on_sphere_set_position_based_on_graph(arr_selected_agent, arr_pos_agent, coord_x, coord_y,
-    #                                                                 coord_z, graph_coord_x, graph_coord_y, graph_coord_z)
-    #     if use_radius:
-    #         self.df_population['coord_x'] = self.df_population['coord_x'] + arr_selected_agent * \
-    #                                         (self.radius * x - self.df_population['coord_x'])
-    #         self.df_population['coord_y'] = self.df_population['coord_y'] + arr_selected_agent * \
-    #                                         (self.radius * y - self.df_population['coord_y'])
-    #         self.df_population['coord_z'] = self.df_population['coord_z'] + arr_selected_agent * \
-    #                                         (self.radius * z - self.df_population['coord_z'])
-    #     else:
-    #         self.df_population['coord_x'] = self.df_population['coord_x'] + arr_selected_agent * \
-    #                                         (x - self.df_population['coord_x'])
-    #         self.df_population['coord_y'] = self.df_population['coord_y'] + arr_selected_agent * \
-    #                                         (y - self.df_population['coord_y'])
-    #         self.df_population['coord_z'] = self.df_population['coord_z'] + arr_selected_agent * \
-    #                                         (z - self.df_population['coord_z'])
-
-    # def start_random_walk_uniform_prob(self, prob, condition=None):
-    #     """
-    #     Perform a uniform test for eahc agent. Successful agents have their attribute 'is_on_random_walk' set to true.
-    #     :param prob: float, probability for all agent to start a random walk
-    #     :param condition: optional, 1D array of bool, default None. If not None, the size of this argument should be the
-    #         total number of agents, and the agent in row i will perform the test if and only if condition[i] is True.
-    #     :return: 1D array of bool telling which agents started random walk thanks to this method (excluding
-    #     """
-    #     arr_is_on_rw = np.array(self.df_population['is_on_random_walk'], dtype=bool)
-    #     if condition is None:
-    #         arr_start_rw = np.random.uniform(0, 1, (self.df_population.shape[0],)) <= prob
-    #         old = np.array(self.df_population['is_on_random_walk'].copy(), dtype=np.bool_)
-    #         new = random_walk_on_sphere_start_random_walk_uniform_prob(arr_start_rw, arr_is_on_rw)
-    #     else:
-    #         condition = np.array(condition, dtype=bool)
-    #         arr_start_rw = np.random.uniform(0, 1, (condition.sum(),)) <= prob
-    #         old = np.array(self.df_population['is_on_random_walk'].copy(), dtype=np.bool_)
-    #         new = conditional_random_walk_on_sphere_start_random_walk_uniform_prob(arr_start_rw, arr_is_on_rw, condition)
-    #     self.df_population['is_on_random_walk'] = new
-    #     return new & ~old
-
     def _temp_exit_random_walk_based_on_k(self, arr_selected_agents, arr_pos_selected_agents, prob_settlement, alpha,
                                           arr_pop=None):
         """
@@ -328,76 +320,3 @@ class RandomWalkOnSphere:
                                           arr_stop * (arr_pos_selected_agents - self.df_population['position'])
         return arr_stop
 
-    # def set_direction_to_north(self, arr_selected_agents):
-    #     """
-    #     Set the directions of the selected agents in the direction of the north pole (coordinates X et Y are 0.). Agents
-    #     located at the north or south pole have their initial direction set to (1., 0., 0.).
-    #     :param arr_selected_agents:
-    #     """
-    #     arr_selected_agents = np.array(arr_selected_agents, dtype=bool)
-    #
-    #     pos_x = np.array(self.df_population['coord_x'], dtype=np.float)
-    #     pos_y = np.array(self.df_population['coord_y'], dtype=np.float)
-    #     pos_z = np.array(self.df_population['coord_z'], dtype=np.float)
-    #
-    #     dir_x = np.array(self.df_population['direction_x'], dtype=np.float)
-    #     dir_y = np.array(self.df_population['direction_y'], dtype=np.float)
-    #     dir_z = np.array(self.df_population['direction_z'], dtype=np.float)
-    #
-    #     dir_x, dir_y, dir_z = random_walk_on_sphere_set_initial_dir_to_north(arr_selected_agents, pos_x, pos_y,
-    #                                                                          pos_z, dir_x, dir_y, dir_z)
-    #
-    #     self.df_population['direction_x'] = dir_x
-    #     self.df_population['direction_y'] = dir_y
-    #     self.df_population['direction_z'] = dir_z
-
-    def set_direction_von_mises(self, arr_selected_agents, kappa):
-        """
-        Set the direction of the selected agents by deviating their current direction by an angle given by von mises
-        distribution.
-        :param arr_selected_agents: 1D array of bool saying which agent should have their direction changed
-        :param kappa: kappa parameter for the von mises distribution.
-        """
-        arr_selected_agents = np.array(arr_selected_agents, dtype=bool)
-
-        pos_x = np.array(self.df_population['coord_x'], dtype=np.float)
-        pos_y = np.array(self.df_population['coord_y'], dtype=np.float)
-        pos_z = np.array(self.df_population['coord_z'], dtype=np.float)
-
-        dir_x = np.array(self.df_population['direction_x'], dtype=np.float)
-        dir_y = np.array(self.df_population['direction_y'], dtype=np.float)
-        dir_z = np.array(self.df_population['direction_z'], dtype=np.float)
-
-        deviation_angles = np.random.vonmises(0, kappa, (arr_selected_agents.sum(),))
-        dir_x, dir_y, dir_z = random_walk_on_sphere_deviate_direction(deviation_angles, arr_selected_agents,
-                                                                      pos_x, pos_y, pos_z, dir_x, dir_y, dir_z)
-
-        self.df_population['direction_x'] = dir_x
-        self.df_population['direction_y'] = dir_y
-        self.df_population['direction_z'] = dir_z
-
-    def propose_step_gamma_law(self, arr_selected_agents, k, theta):
-        """
-        Propose a new step for the selected agents, following their current direction with a step length given by a
-        Gamma distribution.
-        :param arr_selected_agents: 1D array of bool saying which agent should make a new step
-        :param k: shape parameter gamma law
-        :param theta: scale parameter gamma law
-        :return: ProposedStep class
-        """
-        gamma_sample = np.random.gamma(k, theta, size=(arr_selected_agents.sum(),))
-
-        arr_selected_agents = np.array(arr_selected_agents)
-
-        pos_x = np.array(self.df_population['coord_x'], dtype=np.float)
-        pos_y = np.array(self.df_population['coord_y'], dtype=np.float)
-        pos_z = np.array(self.df_population['coord_z'], dtype=np.float)
-
-        dir_x = np.array(self.df_population['direction_x'], dtype=np.float)
-        dir_y = np.array(self.df_population['direction_y'], dtype=np.float)
-        dir_z = np.array(self.df_population['direction_z'], dtype=np.float)
-
-        px, py, pz, dx, dy, dz = random_walk_propose_step_gamma_law(arr_selected_agents, gamma_sample, pos_x,
-                                                                    pos_y, pos_z, dir_x, dir_y, dir_z, self.radius)
-
-        return ProposedStep(self, arr_selected_agents, px, py, pz, dx, dy, dz)

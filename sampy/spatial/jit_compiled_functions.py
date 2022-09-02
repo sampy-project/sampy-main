@@ -18,6 +18,24 @@ def conditional_proximity_is_step_allowed_return_infos(arr_selected_agents, dist
 
 
 @nb.njit
+def conditional_proximity_is_pos_allowed(indices, distances, arr_radius_points, allowed_points):
+    rv = np.full(indices.shape, False, dtype=np.bool_)
+    for i in range(indices.dhape[0]):
+        if allowed_points[indices[i]] and (distances[i] <= arr_radius_points[indices[i]]):
+            rv = True
+    return rv
+
+
+@nb.njit
+def proximity_is_pos_allowed(indices, distances, arr_radius_points):
+    rv = np.full(indices.shape, False, dtype=np.bool_)
+    for i in range(indices.dhape[0]):
+        if distances[i] <= arr_radius_points[indices[i]]:
+            rv = True
+    return rv
+
+
+@nb.njit
 def proximity_is_step_allowed_return_infos(arr_selected_agents, distances, indices, arr_radius_point):
     rv = np.full(arr_selected_agents.shape, False, dtype=np.bool_)
     r_d = np.full(arr_selected_agents.shape, -1., dtype=np.float_)

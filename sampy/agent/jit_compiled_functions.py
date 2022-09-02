@@ -423,72 +423,141 @@ def random_walk_on_sphere_set_initial_dir_to_north(arr_selected_agents,
 
 
 @nb.njit
-def random_walk_on_sphere_deviate_direction(deviation_angle, arr_selected_agents, pos_x, pos_y, pos_z,
-                                            dir_x, dir_y, dir_z):
+def random_walk_on_sphere_deviate_direction_from_angles(deviation_angle, arr_selected_agents, px, py, pz,
+                                                        dx, dy, dz):
     counter_dev_angle = 0
     for i in range(arr_selected_agents.shape[0]):
         if arr_selected_agents[i]:
             angle = deviation_angle[counter_dev_angle]
-            position = np.array([pos_x[i], pos_y[i], pos_z[i]])
-            position = position / np.linalg.norm(position)
+            norm_pos = np.sqrt(px[i]**2 + py[i]**2 + pz[i]**2)
+            position = np.array([px[i], py[i], pz[i]])
+            position = position / norm_pos
 
-            direction = np.array([dir_x[i], dir_y[i], dir_z[i]])
-            direction = np.dot(direction, position) * position + \
-                        np.cos(angle) * np.cross(np.cross(position, direction), position) + \
-                        np.sin(angle) * np.cross(position, direction)
-            direction = np.reshape(direction, (3,))
+            # we rotate the direction by an angle of Theta with respect to the rotation axis given by the position.
+            # position and direction are assumed to be orthonormal. We use the Euler-Rodrigues Formula.
+            c = np.cos(angle)
+            s = np.sin(angle)
+            direction = np.array([c * dx[i] + s * (position[1] * dz[i] - position[2] * dy[i]),
+                                  c * dy[i] + s * (position[2] * dx[i] - position[0] * dz[i]),
+                                  c * dz[i] + s * (position[0] * dy[i] - position[1] * dx[i])])
 
             # normalizing the result to avoid accumulation of approximation errors.
             direction = direction - np.dot(position, direction) * position
-            direction = direction / np.linalg.norm(direction)
+            norm_d = np.sqrt(direction[0]**2 + direction[1]**2 + direction[2]**2)
+            direction = direction / norm_d
 
             # saving the results
-            dir_x[i] = direction[0]
-            dir_y[i] = direction[1]
-            dir_z[i] = direction[2]
+            dx[i] = direction[0]
+            dy[i] = direction[1]
+            dz[i] = direction[2]
 
             # increment the counter
             counter_dev_angle += 1
-    return dir_x, dir_y, dir_z
 
 
 @nb.njit
-def random_walk_propose_step_gamma_law(arr_selected_agents, gamma_sample, pos_x, pos_y, pos_z, dir_x, dir_y, dir_z,
+def random_walk_on_sphere_propose_step_gamma_law(arr_selected_agents, gamma_sample, pos_x, pos_y, pos_z, dir_x, dir_y, dir_z,
                                        radius):
-    r_pos_x = np.full(pos_x.shape, -1.)
-    r_pos_y = np.full(pos_y.shape, -1.)
-    r_pos_z = np.full(pos_z.shape, -1.)
+    r_pos_x = np.full(gamma_sample.shape, -1.)
+    r_pos_y = np.full(gamma_sample.shape, -1.)
+    r_pos_z = np.full(gamma_sample.shape, -1.)
 
-    r_dir_x = np.full(dir_x.shape, -1.)
-    r_dir_y = np.full(dir_y.shape, -1.)
-    r_dir_z = np.full(dir_z.shape, -1.)
+    r_dir_x = np.full(gamma_sample.shape, -1.)
+    r_dir_y = np.full(gamma_sample.shape, -1.)
+    r_dir_z = np.full(gamma_sample.shape, -1.)
 
     counter = 0
     for i in range(arr_selected_agents.shape[0]):
         if arr_selected_agents[i]:
             angle = gamma_sample[counter] / radius
-            nmz_pos = np.array([pos_x[i], pos_y[i], pos_z[i]])
-            nmz_pos = nmz_pos / np.linalg.norm(nmz_pos)
+            nmz_pos = np.array([pos_x[i], pos_y[i], pos_z[i]]) / np.sqrt(pos_x[i]**2 + pos_y[i]**2 + pos_z[i]**2)
             direction = np.array([dir_x[i], dir_y[i], dir_z[i]])
 
             nmz_new_pos = np.cos(angle) * nmz_pos + np.sin(angle) * direction
-            nmz_new_pos = nmz_new_pos / np.linalg.norm(nmz_new_pos)
+            nmz_new_pos = nmz_new_pos / np.sqrt(nmz_new_pos[0] ** 2 + nmz_new_pos[1]**2 + nmz_new_pos[2]**2)
 
             direction = np.cos(angle) * direction - np.sin(angle) * nmz_pos
-            direction = direction - np.dot(direction, nmz_new_pos) * nmz_new_pos
-            direction = direction / np.linalg.norm(direction)
+            direction = direction - (direction[0] * nmz_new_pos[0] + direction[1] * nmz_new_pos[1] +
+                                     direction[2] * nmz_new_pos[2]) * nmz_new_pos
+            direction = direction / np.sqrt(direction[0]**2 + direction[1]**2 + direction[2]**2)
 
-            r_pos_x[i] = radius * nmz_new_pos[0]
-            r_pos_y[i] = radius * nmz_new_pos[1]
-            r_pos_z[i] = radius * nmz_new_pos[2]
+            r_pos_x[counter] = radius * nmz_new_pos[0]
+            r_pos_y[counter] = radius * nmz_new_pos[1]
+            r_pos_z[counter] = radius * nmz_new_pos[2]
 
-            r_dir_x[i] = direction[0]
-            r_dir_y[i] = direction[1]
-            r_dir_z[i] = direction[2]
+            r_dir_x[counter] = direction[0]
+            r_dir_y[counter] = direction[1]
+            r_dir_z[counter] = direction[2]
 
             counter += 1
 
     return r_pos_x, r_pos_y, r_pos_z, r_dir_x, r_dir_y, r_dir_z
+
+
+@nb.njit
+def random_walk_on_sphere_make_step_gamma_law(arr_selected_agents, gamma_sample, pos_x, pos_y, pos_z, dir_x, dir_y,
+                                              dir_z, radius):
+    counter = 0
+    for i in range(arr_selected_agents.shape[0]):
+        if arr_selected_agents[i]:
+            angle = gamma_sample[counter] / radius
+            nmz_pos = np.array([pos_x[i], pos_y[i], pos_z[i]]) / np.sqrt(pos_x[i]**2 + pos_y[i]**2 + pos_z[i]**2)
+            direction = np.array([dir_x[i], dir_y[i], dir_z[i]])
+
+            nmz_new_pos = np.cos(angle) * nmz_pos + np.sin(angle) * direction
+            nmz_new_pos = nmz_new_pos / np.sqrt(nmz_new_pos[0] ** 2 + nmz_new_pos[1]**2 + nmz_new_pos[2]**2)
+
+            direction = np.cos(angle) * direction - np.sin(angle) * nmz_pos
+            direction = direction - (direction[0] * nmz_new_pos[0] + direction[1] * nmz_new_pos[1] +
+                                     direction[2] * nmz_new_pos[2]) * nmz_new_pos
+            direction = direction / np.sqrt(direction[0]**2 + direction[1]**2 + direction[2]**2)
+
+            pos_x[i] = radius * nmz_new_pos[0]
+            pos_y[i] = radius * nmz_new_pos[1]
+            pos_z[i] = radius * nmz_new_pos[2]
+
+            dir_x[i] = direction[0]
+            dir_y[i] = direction[1]
+            dir_z[i] = direction[2]
+
+            counter += 1
+
+
+@nb.njit
+def random_walk_on_sphere_validate_step(arr_selected_agent, arr_success, proposed_px, proposed_py, proposed_pz,
+                                        proposed_dx, proposed_dy, proposed_dz, px, py, pz, dx, dy, dz):
+    counter = 0
+    for i in range(arr_selected_agent.shape[0]):
+        if arr_selected_agent[i]:
+            if arr_success[counter]:
+                px[i] = proposed_px[counter]
+                py[i] = proposed_py[counter]
+                pz[i] = proposed_pz[counter]
+                dx[i] = proposed_dx[counter]
+                dy[i] = proposed_dy[counter]
+                dz[i] = proposed_dz[counter]
+            counter += 1
+
+
+@nb.njit
+def random_walk_on_sphere_validate_step_return_fail(arr_selected_agent, arr_success, proposed_px, proposed_py,
+                                                    proposed_pz, proposed_dx, proposed_dy, proposed_dz, px, py, pz,
+                                                    dx, dy, dz):
+    returned_arr = np.full(arr_selected_agent.shape, False)
+    counter = 0
+    for i in range(arr_selected_agent.shape[0]):
+        if arr_selected_agent[i]:
+            if arr_success[counter]:
+                px[i] = proposed_px[counter]
+                py[i] = proposed_py[counter]
+                pz[i] = proposed_pz[counter]
+                dx[i] = proposed_dx[counter]
+                dy[i] = proposed_dy[counter]
+                dz[i] = proposed_dz[counter]
+            else:
+                arr_selected_agent[i] = True
+            counter += 1
+    return returned_arr
 
 
 @nb.njit

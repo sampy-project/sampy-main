@@ -45,9 +45,9 @@ class BaseProximity3dFromArrays:
 
     def update_allowed_points(self, arr_new_allowed_point):
         """
-        todo
+        Update the array of allowed points.
 
-        :param arr_new_allowed_point:
+        :param arr_new_allowed_point: 1D array of bool, telling which point is allowed.
         """
         self.allowed_points = arr_new_allowed_point
 
@@ -152,13 +152,18 @@ class Proximity3dBasicSpatialQueries:
 
     def is_pos_allowed(self, pos_x, pos_y, pos_z, distances=None, indices=None):
         """
-        todo
+        Given a series of position, whose coordinates are given as three 1 dimensional arrays, this method tells which
+        are allowed with respect to the current proximity class.
 
-        :param pos_x:
-        :param pos_y:
-        :param pos_z:
+        :param pos_x: 1d array of float, x coordinate of the positions.
+        :param pos_y: 1d array of float, y coordinate of the positions
+        :param pos_z: 1d array of float, z coordinate of the positions
+        :param distances: optional, 1d array of float, default None. If given, distances[i] should be the distance
+                          from the position i to its closest point in the proximity class.
+        :param indices: optional, 1d array of int, default None. If given, indices[i] should be the index of the point
+                        in the proximity class which is the closest to the position i.
 
-        :return: three arrays, first one of bool, second of distance, third of indexes.
+        :return: an array of bool, telling which positions are allowed.
         """
         if (indices is None) or (distances is None):
             distances, indices = self.get_closest_point(pos_x, pos_y, pos_z)

@@ -18,9 +18,10 @@ class BaseSingleSpeciesDisease:
         self.host.df_population['con_' + disease_name] = False
         self.host.df_population['imm_' + disease_name] = False
 
-        self.host.dict_default_val['inf_' + disease_name] = False
-        self.host.dict_default_val['con_' + disease_name] = False
-        self.host.dict_default_val['imm_' + disease_name] = False
+        if hasattr(host, 'dict_default_val'):
+            self.host.dict_default_val['inf_' + disease_name] = False
+            self.host.dict_default_val['con_' + disease_name] = False
+            self.host.dict_default_val['imm_' + disease_name] = False
 
         if not hasattr(self, 'list_disease_status'):
             self.set_disease_status = {'inf', 'con', 'imm'}

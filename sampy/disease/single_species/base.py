@@ -49,9 +49,9 @@ class BaseSingleSpeciesDisease:
     def count_nb_status_per_vertex(self, target_status, position_attribute='position'):
         """
         Count the number of agent having the targeted status in each vertex. The status can either be 'inf', 'con' and
-        'imm', which respectively corresponds to infected, contagious and immuned agents.
+        'imm', which respectively corresponds to infected, contagious and immunized agents.
 
-        :param target_status: string in ['inf', 'con', 'imm']
+        :param target_status: string in ['inf', 'con', 'imm'].
         :param position_attribute: optional, string.
 
         :return: array counting the number of agent having the target status in each vertex

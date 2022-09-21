@@ -42,8 +42,9 @@ class TransitionCustomProbPermanentImmunity:
 
         :param arr_new_infected: 1d array of bool, saying which agent are newly infected and should have their
                                  'infectious status counter' initialized.
-        :param arr_nb_timestep: 1d array of int.
-        :param arr_prob: 1d array of non negative floats, will be normalized to sum to 1.
+        :param arr_nb_timestep: 1d array of int. work in tandem with arr_prob, see below.
+        :param arr_prob: 1D array of float. arr_prob[i] is the probability for an agent to stay infected but not
+                         contagious for arr_nb_timestep[i] time-steps.
 
         """
         if self.host.df_population.nb_rows == 0:

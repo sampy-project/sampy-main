@@ -192,6 +192,7 @@ class BaseAgingAgent:
     def save_population_to_csv(self, path, sep=';', **kwargs):
         """
         Save the dataframe df_population as csv
+
         :param path: full path of the csv file
         :param sep: optional. Separator used in csv. Default is ';'
         """
@@ -200,6 +201,7 @@ class BaseAgingAgent:
     def load_population_from_csv(self, path, sep=';', **kwargs):
         """
         load a csv film to create the dataframe. Override the existing dataframe df_population, if any.
+
         :param path: full path of the csv file
         :param sep: optional. Separator used in csv. Default is ';'
         """

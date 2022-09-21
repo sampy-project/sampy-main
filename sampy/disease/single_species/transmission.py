@@ -23,7 +23,7 @@ class TransmissionByContact:
                           return_arr_new_infected=True):
         """
         Propagate the disease by direct contact using the following methodology. For any vertex X of the graph, we
-        count the number of contagious agents N_c, then each non immuned agent on the cell X has a probability of
+        count the number of contagious agents N_c, then each non immuned agent on the vertex X has a probability of
 
                             1 - (1 - contact_rate) ** N_c
 

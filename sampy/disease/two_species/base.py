@@ -20,6 +20,7 @@ class BaseTwoSpeciesDisease:
 
         self.host1 = host1
         self.host2 = host2
+
         self.disease_name = disease_name
 
         self.host1.df_population['inf_' + disease_name] = False
@@ -40,7 +41,7 @@ class BaseTwoSpeciesDisease:
             self.host2.dict_default_val['con_' + disease_name] = False
             self.host2.dict_default_val['imm_' + disease_name] = False
 
-        if not hasattr(self, 'list_disease_status'):
+        if not hasattr(self, 'set_disease_status'):
             self.set_disease_status = {'inf', 'con', 'imm'}
         else:
             self.set_disease_status.update(['inf', 'con', 'imm'])
@@ -55,15 +56,16 @@ class BaseTwoSpeciesDisease:
         for method in self.on_ticker:
             getattr(self, method)()
 
-    def contaminate_vertices(self, list_vertices, level, host, return_arr_newly_contaminated=True,
+    def contaminate_vertices(self, host, list_vertices, level, return_arr_newly_contaminated=True,
                              condition=None, position_attribute='position'):
         """
         Contaminate the vertices given in the list 'list_vertices' with the disease. Each agent on the vertex have a
         probability of 'level' to be contaminated.
 
+        :param host: string, either 'host1' or 'host2'. If host1 should be targeted, put 'host1', If host2 should be
+                     targeted, put 'host2'. Any other input will lead to an error.
         :param list_vertices: list of vertices ID to be contaminated.
-        :param level: float, probability for agent on the vertices to be contaminated
-        :param host: int, either 1 or 2. if 1, host 1 will be contaminated, if 2, 2 will be.
+        :param level: float, probability for agent on the vertices to be contaminated.
         :param return_arr_newly_contaminated: optional, boolean, default True. If True, the method returns an array
                                               telling which agents were contaminated.
         :param condition: optional, array of bool, default None. If not None, say which agents are susceptible to be
@@ -73,13 +75,16 @@ class BaseTwoSpeciesDisease:
         :return: if return_arr_newly_contaminated is set to True, returns a 1D array of bool. Otherwise, returns
                  None.
         """
-        if host == 1:
+        # here we check that the given object seems to be the one provided during construction.
+        if host == 'host1':
             host = self.host1
-        elif host == 2:
+        elif host == 'host2':
             host = self.host2
         else:
-            raise ValueError('Host arguments should be an integer, and either 1 or 2.')
+            raise ValueError('The "host" argument is not recognized. It should be either "host1" or "host2".')
 
+
+        # this is quite inefficient, but this function is not assumed to be called often.
         for i, vertex_id in enumerate(list_vertices):
             if i == 0:
                 arr_new_infected = (host.df_population[position_attribute] ==

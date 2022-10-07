@@ -108,7 +108,7 @@ class NaturalMortalityOrmMethodology:
                                        male agent whose age is 'i'.
         :param array_death_proba_female: 1D array of float where array_death_proba_female[i] is the proba of death of a
                                          female agent whose age is 'i'.
-        :param bias: optional, float, default 0. Hyper parameter used to configure the mortality. Represents a 'base
+        :param bias: optional, float, default 0. Hyperparameter used to configure the mortality. Represents a 'base
                      mortality'.
         :param shuffle: optional, boolean, default True.
         :param permutation_shuffle: optional, 1D array of int, default None. Permutation used for the shuffle. If

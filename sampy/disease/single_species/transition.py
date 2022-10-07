@@ -10,10 +10,8 @@ class TransitionCustomProbPermanentImmunity:
 
     WARNING: be aware that the time each agent spend in each status of the disease is kept in memory using counters.
              Those counters HAVE TO be initialized for newly infected individuals throught the use of the method
-             'initialize_counters_of_newly_infected'. This is a current problem of Sampy that the user has to
-             explicitly call a method that should be automatically called in the background. This issue will be
-             adressed in the future once a satisfactory design solution has been found (here, satisfactory means
-             'that doesn't create too much special cases that developers working on Sampy have to keep in mind').
+             'initialize_counters_of_newly_infected'. This problem is addressed by the 'simplified' methods in Sampy
+             built-in diseases.
     """
     def __init__(self, **kwargs):
         self.host.df_population['cnt_inf_' + self.disease_name] = 0

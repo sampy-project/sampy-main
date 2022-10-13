@@ -28,3 +28,12 @@ def culling_apply_culling_from_array_condition(arr_culling_level, arr_position, 
                 survive[i] = False
             counter_rand += 1
     return survive
+
+
+@nb.njit
+def sampling_sample_from_array(arr_sampling_level, arr_position, rand):
+    sampled = np.full(arr_position.shape, False, dtype=np.bool_)
+    for i in range(arr_position.shape[0]):
+        if rand[i] < arr_sampling_level[arr_position[i]]:
+            sampled[i] = True
+    return sampled

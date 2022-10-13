@@ -1,4 +1,6 @@
 import numpy as np
+from .jit_compiled_functions import (sampling_get_potential_targets,
+                                     sampling_sample_from_array_condition)
 
 
 class BaseSamplingSingleSpecies:
@@ -35,4 +37,14 @@ class SamplingSingleSpecies:
         :return: a DataFrameXS if return_as_pandas_df is False, a pandas dataframe otherwise. The returned DF is
                  the sample of the population taken from df_population
         """
-        rand = np.random.uniform(0, 1, (self.target_species.df_population.nb_rows,))
+        targets = sampling_get_potential_targets(self.target_species.df_population[position_attribute],
+                                                 array_proportion)
+        if condition is not None:
+            targets = targets & condition
+
+        rand = np.random.uniform(0, 1, (targets.sum(),))
+
+        sampled = sampling_sample_from_array_condition(array_proportion,
+                                                       self.target_species.df_population[position_attribute],
+                                                       rand, targets)
+

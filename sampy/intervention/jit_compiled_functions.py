@@ -30,10 +30,18 @@ def culling_apply_culling_from_array_condition(arr_culling_level, arr_position, 
     return survive
 
 
+def sampling_get_potential_targets(arr_position, arr_level_per_position):
+    set_allowed_pos = set([i for i, val in enumerate(arr_level_per_position) if val > 0.])
+    return np.array([u in set_allowed_pos for u in arr_position])
+
+
 @nb.njit
-def sampling_sample_from_array(arr_sampling_level, arr_position, rand):
+def sampling_sample_from_array_condition(arr_sampling_level, arr_position, rand, condition):
     sampled = np.full(arr_position.shape, False, dtype=np.bool_)
+    counter_rand = 0
     for i in range(arr_position.shape[0]):
-        if rand[i] < arr_sampling_level[arr_position[i]]:
-            sampled[i] = True
+        if condition[i]:
+            if rand[counter_rand] < arr_sampling_level[arr_position[i]]:
+                sampled[i] = True
+            counter_rand += 1
     return sampled

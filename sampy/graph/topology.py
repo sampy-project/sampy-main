@@ -2,7 +2,6 @@ from .misc import (create_grid_hexagonal_cells,
                    create_grid_square_cells,
                    create_grid_square_with_diagonals,
                    SubdividedIcosahedron)
-from sampy.utils.jit_compiled_functions import create_image_from_count_array_builtin_graph
 from .jit_compiled_functions import (get_oriented_neighborhood_of_vertices,
                                      get_surface_array,
                                      topology_convert_1d_array_to_2d_array,
@@ -173,7 +172,7 @@ class IcosphereTopology(BaseTopology):
         if nb_sub is None:
             raise ValueError("kwarg nb_sub missing")
         self.nb_sub = nb_sub
-        self.radius = radius
+        self.radius = float(radius)
 
         icosahedron = SubdividedIcosahedron(nb_sub)
         self.connections = np.copy(icosahedron.connections)
@@ -211,9 +210,9 @@ class IcosphereTopology(BaseTopology):
         if not self.three_d_coord_created:
             self.create_3d_coord()
 
-        self.df_attributes['lat'] = 180*(pi/2 - np.arccos(self.df_attributes['coord_z_normalized']))/pi
-        self.df_attributes['lon'] = 180*np.arctan2(self.df_attributes['coord_y_normalized'],
-                                                   self.df_attributes['coord_x_normalized'])/pi
+        self.df_attributes['lat'] = (180*(pi/2 - np.arccos(self.df_attributes['coord_z_normalized']))/pi).astype(np.float64)
+        self.df_attributes['lon'] = (180*np.arctan2(self.df_attributes['coord_y_normalized'],
+                                                   self.df_attributes['coord_x_normalized'])/pi).astype(np.float64)
 
     def compute_distance_matrix_on_sphere(self):
         """
@@ -230,14 +229,17 @@ class IcosphereTopology(BaseTopology):
 
         return dist_matrix
 
-    def save_radius_cells_as_attribute(self):
+    def create_and_save_radius_cells_as_attribute(self, radius_attribute='radius_each_cell'):
         """
         Save radius of each cell. The radius of a cell centered on a vertex v is defined as the maximum distance between
         v and its neighbours. The radius is saved within df_attributes.
+
+        :param radius_attribute: optional, string, default 'radius_each_cell'. Name of the attribute corresponding to
+                                 the radius of each cell.
         """
         dist_matrix = self.compute_distance_matrix_on_sphere()
-        max_distance = np.amax(dist_matrix, axis=1)
-        self.df_attributes['radius_each_cell'] = max_distance
+        max_distance = np.amax(dist_matrix, axis=1).astype(np.float64)
+        self.df_attributes[radius_attribute] = max_distance
 
     def compute_surface_array(self):
         """
@@ -252,7 +254,7 @@ class IcosphereTopology(BaseTopology):
                                  self.df_attributes['coord_x_normalized'],
                                  self.df_attributes['coord_y_normalized'],
                                  self.df_attributes['coord_z_normalized'],
-                                 self.radius)
+                                 self.radius).astype(np.float64)
 
     def create_and_save_surface_array_as_attribute(self):
         arr_surface = self.compute_surface_array()

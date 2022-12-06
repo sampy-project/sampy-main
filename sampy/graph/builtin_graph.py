@@ -46,17 +46,17 @@ class SquareGrid(SquareGridTopology,
 class IcosphereGraph(BaseVertexAttributes,
                      IcosphereTopology):
     """
-    Graph of choice for the study of species whose species distribution is big enough that the shape of the earth plays
-    has to be included.
+    Graph of choice for the study of species whose species distribution is big enough so that the shape of the earth
+    has to be considered.
     """
     def __init__(self, **kwargs):
         pass
 
     def save(self, path_to_folder, erase_folder=True):
         """
-        Save the graph structure in a folder using .npy files. The end result is not human readable.
+        Save the graph structure in a folder using .npy files. The end result is not human-readable.
 
-        :param path_to_folder: Path to the folder. If it does not exists, the folder will be created.
+        :param path_to_folder: Path to the folder. If it does not exist, the folder will be created.
         :param erase_folder: optional, boolean, default True. If True, any folder already existing at 'path_to_folder'
                              will be deleted.
         """

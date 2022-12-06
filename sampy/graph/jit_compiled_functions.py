@@ -67,7 +67,7 @@ def get_oriented_neighborhood_of_vertices(connections):
 
 @nb.njit
 def get_surface_array(oriented_neighbourhood_array, x_coord, y_coord, z_coord, radius):
-    rv = np.full((oriented_neighbourhood_array.shape[0],), 0.)
+    rv = np.full((oriented_neighbourhood_array.shape[0],), 0., dtype=np.float64)
     for index_center in range(oriented_neighbourhood_array.shape[0]):
         # get coordinates of the center
         x_center = x_coord[index_center]

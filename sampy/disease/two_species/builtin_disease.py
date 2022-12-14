@@ -49,8 +49,8 @@ class TwoSpeciesContactCustomProbTransitionPermanentImmunity(BaseTwoSpeciesDisea
         :param arr_timesteps_host1: 1d array of int. work in tandem with arr_prob_timesteps_host1, see below.
         :param arr_prob_timesteps_host1: 1D array of float. arr_prob[i] is the probability for an agent to stay infected
                                          but not contagious for arr_nb_timestep[i] time-steps.
-        :param arr_timesteps_host2: same but for host2
-        :param arr_prob_timesteps_host2: same but for host2
+        :param arr_timesteps_host2: same but for host2.
+        :param arr_prob_timesteps_host2: same but for host2.
         :param position_attribute_host1: optional, string, default 'position'. Name of the agent attribute used as
                                          position for host1.
         :param position_attribute_host2: optional, string, default 'position'. Name of the agent attribute used as
@@ -121,7 +121,48 @@ class TwoSpeciesContactCustomProbTransitionPermanentImmunity(BaseTwoSpeciesDisea
                     arr_infectious_period_host1[i] timesteps contagious.
         :param arr_prob_infectious_period_host2: same as host1
         """
-        pass
+        self.transition_between_states('host1', 'con', 'death', proba_death=prob_death_host1)
+        self.transition_between_states('host2', 'con', 'death', proba_death=prob_death_host2)
 
-    def simplified_contaminate_vertices(self):
-        pass
+        if self.host1.df_population.nb_rows != 0:
+            self.transition_between_states('host1', 'con', 'imm')
+            self.transition_between_states('host1', 'inf', 'con', arr_nb_timestep=arr_infectious_period_host1,
+                                           arr_prob_nb_timestep=arr_prob_infectious_period_host1)
+
+        if self.host2.df_population.nb_rows != 0:
+            self.transition_between_states('host2', 'con', 'imm')
+            self.transition_between_states('host2', 'inf', 'con', arr_nb_timestep=arr_infectious_period_host2,
+                                           arr_prob_nb_timestep=arr_prob_infectious_period_host2)
+
+    def simplified_contaminate_vertices(self, host, list_vertices, level, arr_timesteps, arr_prob_timesteps,
+                                        condition=None, position_attribute='position',
+                                        return_arr_newly_contaminated=True):
+        """
+        Contaminate a list of vertices.
+
+        Detailed explanation: each agent has a series of counter attached, telling how much time-steps they will spend
+                              in each disease status. Those counters have to be initialized when an individual is newly
+                              infected, and that's what this method does to the newly infected individuals.
+
+        :param host: string, either 'host1' or 'host2', tells which host to infect.
+        :param list_vertices: list of vertices ID to be contaminated.
+        :param level: float, probability for agent on the vertices to be contaminated.
+        :param arr_timesteps: 1D array of integer. Works in tandem with 'arr_prob_timesteps'. See below.
+        :param arr_prob_timesteps: 1D array of float. arr_prob_timesteps[i] is the probability for an agent to stay
+                                   infected but not contagious for arr_timesteps[i] timesteps.
+        :param condition: optional, array of bool, default None. If not None, say which agents are susceptible to be
+                          contaminated.
+        :param position_attribute: optional, string, default 'position'. Agent attribute to be used to define
+                                   their position.
+        :param return_arr_newly_contaminated: optional, boolean, default True. If True, the method returns an array
+                                              telling which agents were contaminated.
+
+        :return: if return_arr_newly_contaminated is set to True, returns a 1D array of bool telling which agents where
+                 contaminated. Returns None otherwise.
+        """
+        arr_new_contaminated = self.contaminate_vertices(host, list_vertices, level,
+                                                         condition=condition, position_attribute=position_attribute,
+                                                         return_arr_newly_contaminated=True)
+        self.initialize_counters_of_newly_infected(host, arr_new_contaminated, arr_timesteps, arr_prob_timesteps)
+        if return_arr_newly_contaminated:
+            return arr_new_contaminated

@@ -18,6 +18,9 @@ class ContactCustomProbTransitionPermanentImmunity(BaseSingleSpeciesDisease,
                building blocks involved in this disease requires many actions to be performed in a precise order,
                otherwise the model's behaviour cannot be guaranteed. See each simplified method description to learn
                about each respective ordering.
+
+    :param disease_name: mandatory kwargs. String.
+    :param host: mandatory kwargs. Population object of the host.
     """
     def __init__(self, **kwargs):
         pass

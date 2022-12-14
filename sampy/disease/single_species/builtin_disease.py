@@ -89,9 +89,20 @@ class ContactCustomProbTransitionPermanentImmunity(BaseSingleSpeciesDisease,
 
     def simplified_transition_between_states(self, prob_death, arr_infectious_period, arr_prob_infectious_period):
         """
-        Takes care of modifying
+        Takes care of the transition between all the disease states. That is, agents that are at the end of their
+        infected period become contagious and agents at the end of their contagious period either die (with a
+        probability of 'prob_death') or become immuned.
 
-        :return:
+        Detailed Explanation: the method transition_between_states is coded in such a way that when using it for
+                              transitionning from con to imm, all the agents at the end of their contagious period at
+                              the time the method is called transition. Therefore, we have to make the transition
+                              'con' to 'death' first.
+
+        :param prob_death: float between 0 and 1, probability for an agent to die at the end of the contagious period
+        :param arr_infectious_period: 1d array of int, works in tandem with arr_prob_infectious_period. See Below.
+        :param arr_prob_infectious_period: 1d array of floats, sums to 1. Same shape as arr_infectious_period.
+                    When an agent transition from infected to contagious, then arr_prob_infectious_period[i] is the
+                    probability for this agent to stay arr_infectious_period[i] timesteps contagious.
         """
         self.transition_between_states('con', 'death', proba_death=prob_death)
 

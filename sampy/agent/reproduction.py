@@ -232,9 +232,15 @@ class FindMatePolygamous:
                                                                            condition)
 
     def get_females(self):
+        """
+        :return: 1D array of bool telling which agents are females.
+        """
         return self.df_population['gender'] == 1
 
     def get_males(self):
+        """
+        :return: 1D array of bool telling which agents are males.
+        """
         return self.df_population['gender'] == 0
 
 

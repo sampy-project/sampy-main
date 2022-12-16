@@ -1,6 +1,6 @@
-from sampy.graph.topology import BaseTopology
-from sampy.graph.vertex_attributes import BaseVertexAttributes, PeriodicAttributes
-from sampy.utils.decorators import sampy_class
+from ...graph.topology import BaseTopology
+from ...graph.vertex_attributes import BaseVertexAttributes, PeriodicAttributes
+from ...utils.decorators import sampy_class
 import xml.etree.ElementTree as ET
 import numpy as np
 

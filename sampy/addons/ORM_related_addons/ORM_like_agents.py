@@ -1,13 +1,13 @@
-from sampy.agent.base import BaseAgingAgent
-from sampy.agent.mortality import NaturalMortalityOrmMethodology, OffspringDependantOnParents
-from sampy.agent.reproduction import (OffspringCreationWithCustomProb,
+from ...agent.base import BaseAgingAgent
+from ...agent.mortality import NaturalMortalityOrmMethodology, OffspringDependantOnParents
+from ...agent.reproduction import (OffspringCreationWithCustomProb,
                                       FindMateMonogamous,
                                       FindMatePolygamous)
-from sampy.agent.movement import TerritorialMovementWithoutResistance
-from sampy.utils.decorators import sampy_class
+from ...agent.movement import TerritorialMovementWithoutResistance
+from ...utils.decorators import sampy_class
 
 from .jit_compiled_function import *
-from sampy.agent.jit_compiled_functions import movement_mov_around_territory_fill_bool_mov_using_condition
+from ...agent.jit_compiled_functions import movement_mov_around_territory_fill_bool_mov_using_condition
 
 import numpy as np
 

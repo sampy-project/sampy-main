@@ -126,9 +126,15 @@ class FindMateMonogamous:
                                                                 condition)
 
     def get_females(self):
+        """
+        :return: 1D array of bool telling which agents are females.
+        """
         return self.df_population['gender'] == 1
 
     def get_males(self):
+        """
+        :return: 1D array of bool telling which agents are males.
+        """
         return self.df_population['gender'] == 0
 
 
@@ -313,11 +319,16 @@ class OffspringCreationWithCustomProb:
 
         Note that arr_prob_nb_children is normalized so that it sums to 1.
 
-        :param arr_nb_children: 1D array of int
-        :param arr_prob_nb_children: 1d array of floats
-        :param condition: optional, 1d array of bool, default None.
-        :param dico_default_values: optional, dictionnary, default {}.
-        :param prob_failure: optional, float, default None.
+        :param arr_nb_children: 1D array of int, see above description.
+        :param arr_prob_nb_children: 1d array of floats, see above description.
+        :param condition: optional, 1d array of bool, default None. Tells which female and pregnant agents are allowed
+                          to give birth.
+        :param dico_default_values: optional, dictionnary, default None. Contains default values for the offsprings
+                                    attributes. Any attribute not provided will use default values built-in the
+                                    population object.
+        :param prob_failure: optional, float, default None. Probability for an agent trying to give birth to fail such
+                             action. As a result, the agent would no longer be pregnant and would not produce any
+                             offspring.
         :param age_attribute: optional, string, default 'age'. Agent attribute used as age
         :param mother_attribute: optional, string, default 'mom_id'. Agent attribute used as mother id
         :param father_attribute: optional, string, default 'dad_id'. Agent attribute used as father id

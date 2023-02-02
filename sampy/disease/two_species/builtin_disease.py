@@ -96,8 +96,8 @@ class TwoSpeciesContactCustomProbTransitionPermanentImmunity(BaseTwoSpeciesDisea
             return dict_contagion
 
     def simplified_transition_between_states(self, prob_death_host1, prob_death_host2,
-                                             arr_infectious_period_host1, arr_infectious_period_host2,
-                                             arr_prob_infectious_period_host1, arr_prob_infectious_period_host2):
+                                             arr_infectious_period_host1, arr_prob_infectious_period_host1,
+                                             arr_infectious_period_host2, arr_prob_infectious_period_host2):
         """
         Takes care of the transition between all the disease states. That is, agents that are at the end of their
         infected period become contagious and agents at the end of their contagious period either die (with a
@@ -114,11 +114,11 @@ class TwoSpeciesContactCustomProbTransitionPermanentImmunity(BaseTwoSpeciesDisea
                                  contagious period
         :param arr_infectious_period_host1: 1d array of int, works in tandem with arr_prob_infectious_period_host1.
                                             See Below.
-        :param arr_infectious_period_host2: same as host1
         :param arr_prob_infectious_period_host1: 1d array of floats, sums to 1. Same shape as
                     arr_infectious_period_host1. When an agent transition from infected to contagious, then
                     arr_prob_infectious_period_host1[i] is the probability for this agent to stay
                     arr_infectious_period_host1[i] timesteps contagious.
+        :param arr_infectious_period_host2: same as host1
         :param arr_prob_infectious_period_host2: same as host1
         """
         self.transition_between_states('host1', 'con', 'death', proba_death=prob_death_host1)

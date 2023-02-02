@@ -88,9 +88,9 @@ class TransitionCustomProbPermanentImmunity:
         """
         if self.host1.df_population.nb_rows > 0:
             self.host1.df_population['cnt_inf_' + self.disease_name] -= \
-                self.host1.df_population['inf_' + self.disease_name] & (self.host2.df_population['cnt_inf_' + self.disease_name] > 0)
+                self.host1.df_population['inf_' + self.disease_name] & (self.host1.df_population['cnt_inf_' + self.disease_name] > 0)
             self.host1.df_population['cnt_con_' + self.disease_name] -= \
-                self.host1.df_population['con_' + self.disease_name] & (self.host2.df_population['cnt_con_' + self.disease_name] > 0)
+                self.host1.df_population['con_' + self.disease_name] & (self.host1.df_population['cnt_con_' + self.disease_name] > 0)
 
         if self.host2.df_population.nb_rows > 0:
             self.host2.df_population['cnt_inf_' + self.disease_name] -= \
@@ -201,7 +201,7 @@ class TransitionCustomProbPermanentImmunity:
                                                                              host.df_population[position_attribute],
                                                                              host.graph.connections.shape[0])
 
-            host.df_population[target_state + '_' + self.disease_name] = susceptible | self.host.df_population[
+            host.df_population[target_state + '_' + self.disease_name] = susceptible | host.df_population[
                 target_state + '_' + self.disease_name]
             if target_state == 'imm':
                 transition_falsify_when_condition(host.df_population['inf_' + self.disease_name], susceptible)

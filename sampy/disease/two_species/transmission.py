@@ -125,7 +125,8 @@ class ContactTransmissionSameGraph:
             rv = {}
             new_inf_host1, new_inf_host2 = transmission_disease_propagation_return_new_inf(
                                                                    susceptible_host1, susceptible_host2,
-                                                                   position_attribute_host1, position_attribute_host2,
+                                                                   self.host1.df_population[position_attribute_host1],
+                                                                   self.host2.df_population[position_attribute_host2],
                                                                    self.host1.df_population['inf_' + self.disease_name],
                                                                    self.host2.df_population['inf_' + self.disease_name],
                                                                    count_con_host1, count_con_host2,
@@ -137,7 +138,8 @@ class ContactTransmissionSameGraph:
             rv = {}
             type_inf_host1, type_inf_host2 = transmission_disease_propagation_return_type_inf(
                                                                    susceptible_host1, susceptible_host2,
-                                                                   position_attribute_host1, position_attribute_host2,
+                                                                   self.host1.df_population[position_attribute_host1],
+                                                                   self.host2.df_population[position_attribute_host2],
                                                                    self.host1.df_population['inf_' + self.disease_name],
                                                                    self.host2.df_population['inf_' + self.disease_name],
                                                                    count_con_host1, count_con_host2,
@@ -151,7 +153,8 @@ class ContactTransmissionSameGraph:
 
         # case where nothing is returned
         transmission_disease_propagation(susceptible_host1, susceptible_host2,
-                                         position_attribute_host1, position_attribute_host2,
+                                         self.host1.df_population[position_attribute_host1],
+                                         self.host2.df_population[position_attribute_host2],
                                          self.host1.df_population['inf_' + self.disease_name],
                                          self.host2.df_population['inf_' + self.disease_name],
                                          count_con_host1, count_con_host2,

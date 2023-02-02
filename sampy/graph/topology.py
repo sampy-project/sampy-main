@@ -259,3 +259,8 @@ class IcosphereTopology(BaseTopology):
     def create_and_save_surface_array_as_attribute(self):
         arr_surface = self.compute_surface_array()
         self.df_attributes['surface_cell'] = arr_surface
+
+
+class OrientedHexagonalGrid(BaseTopology):
+    def __init__(self, **kwargs):
+        pass

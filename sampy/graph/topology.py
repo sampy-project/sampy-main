@@ -38,7 +38,7 @@ class BaseTopology:
 
     def save_table_id_of_vertices_to_indices(self, path_to_csv, sep, erase_existing_file=True):
         """
-        Create an save a two column csv allowing to match vertices id's with vertices indexes.
+        Create and save a two column csv allowing to match vertices id's with vertices indexes.
 
         :param path_to_csv: string, path to the output csv
         :param sep: string, separator to use in the csv.
@@ -262,5 +262,12 @@ class IcosphereTopology(BaseTopology):
 
 
 class OrientedHexagonalGrid(BaseTopology):
-    def __init__(self, **kwargs):
+    """
+    Create an hexagonal lattice on a square. Each
+    """
+    def __init__(self, nb_hex_x_axis=None, nb_hex_y_axis=None, **kwargs):
+        """
+        :param nb_hex_x_axis: mandatory kwargs. Integer, number of hexagons on the horizontal axis.
+        :param nb_hex_y_axis: mandatory kwargs. Integer, number of hexagons on the vertical axis.
+        """
         pass

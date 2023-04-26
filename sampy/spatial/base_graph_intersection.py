@@ -16,10 +16,11 @@ class BaseGraphIntersection:
         self.graph_1 = graph_1
         self.graph_2 = graph_2
 
-        # self.
+        self.indexes_g1_to_g2 = None  # this attributes work with the two below, see class description
         self.connections_g1_to_g2 = None
         self.weights_g1_to_g2 = None
 
+        self.indexes_g2_to_g1 = None
         self.connections_g2_to_g1 = None
         self.weights_g2_to_g1 = None
 

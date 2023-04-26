@@ -4,11 +4,12 @@ from .spatial_functions import create_2d_coords_from_oriented_connection_matrix
 
 class SpatialComponentsTwoDimensionalOrientedHexagons:
     """
-
+    Allow user to introduce "spatial components" to graphs based on Oriented Hexagons. Those new components are not
+    generated from the start, as most user may not need them, and users should
     """
     def __init__(self, **kwargs):
-        self.hexagon_vertices = None
-        pass
+        self.cell_vertices = None
+        self.index_cell_vertices = None
 
     def _sampy_debug_set_coords_from_vector(self, coord_first_vertex, vector, index_first_vertex=0,
                                             attribute_coord_x='coord_x', attribute_coord_y='coord_y'):
@@ -159,3 +160,11 @@ class SpatialComponentsTwoDimensionalOrientedHexagons:
             for u in list_directions_to_neighbours:
                 self.hexagon_vertices.append([x + u[0], y + u[1]])
         self.hexagon_vertices = np.array(self.hexagon_vertices)
+
+
+class SpatialComponentsSquareLattice:
+    """
+
+    """
+    def __init__(self, **kwargs):
+        pass

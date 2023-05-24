@@ -236,87 +236,87 @@ class SphericalRandomWalk:
                                                       radius)
 
 
-class RandomWalkOnSphere:
-    """
-    This class give the ability for the agent to perform random walks on a sphere. The directions are preserved between
-    consecutive steps by using parallel transport.
-    """
-    def __init__(self):
-        self.radius = 1.
-        self.unit = 'km'
-        if hasattr(self, 'df_population'):
-            self.df_population['is_on_random_walk'] = False
-            self.df_population['coord_x'] = np.nan
-            self.df_population['coord_y'] = np.nan
-            self.df_population['coord_z'] = np.nan
-            self.df_population['direction_x'] = np.nan
-            self.df_population['direction_y'] = np.nan
-            self.df_population['direction_z'] = np.nan
-        else:
-            self.df_population = pd.DataFrame(columns=['is_on_random_walk', 'coord_x', 'coord_y', 'coord_z',
-                                                       'direction_x', 'direction_y', 'direction_z'])
-
-        if hasattr(self, 'dict_default_values'):
-            self.dict_default_values['is_on_random_walk'] = False
-            self.dict_default_values['coord_x'] = np.nan
-            self.dict_default_values['coord_y'] = np.nan
-            self.dict_default_values['coord_z'] = np.nan
-            self.dict_default_values['direction_x'] = np.nan
-            self.dict_default_values['direction_y'] = np.nan
-            self.dict_default_values['direction_z'] = np.nan
-        else:
-            self.dict_default_values = dict()
-            self.dict_default_values['is_on_random_walk'] = False
-            self.dict_default_values['coord_x'] = np.nan
-            self.dict_default_values['coord_y'] = np.nan
-            self.dict_default_values['coord_z'] = np.nan
-            self.dict_default_values['direction_x'] = np.nan
-            self.dict_default_values['direction_y'] = np.nan
-            self.dict_default_values['direction_z'] = np.nan
-        super().__init__()
-
-    def set_radius(self, radius, unit='km'):
-        """
-        Set the value of the radius of the sphere on which the agents walk.
-        :param radius: float, value for the radius of the sphere.
-        :param unit: optional, string, default 'km'. Unit used for distances. For the moment, this parameter is not
-            used by any method.
-        """
-        self.radius = radius
-        self.unit = unit
-
-    def _temp_exit_random_walk_based_on_k(self, arr_selected_agents, arr_pos_selected_agents, prob_settlement, alpha,
-                                          arr_pop=None):
-        """
-        This method is considered private as it is a quick and dirty hack to have a 'kind of realistic' condition for
-        exiting random walk state. This is not based on ANY literature, so be careful and use at your own risk.
-        """
-        arr_selected_agents = np.array(arr_selected_agents)
-        # print('selected_agents', arr_selected_agents)
-        arr_pos_selected_agents = np.array(arr_pos_selected_agents, dtype=np.int32)
-        # print('pos_agents', arr_pos_selected_agents)
-        # print(arr_pos_selected_agents)
-        nb_agents = arr_selected_agents.sum()
-        rand = np.random.uniform(0, 1, (nb_agents,))
-        arr_k = np.array(self.graph.df_attributes['K'])
-        if arr_pop is None:
-            arr_pop = self.count_pop_per_vertex(position_attribute='territory')
-        arr_pop = np.array(arr_pop, dtype=np.int32)
-        arr_stop = _temp_random_walk_on_sphere_exit_random_walk_based_on_k(arr_selected_agents, rand, prob_settlement,
-                                                                           alpha, arr_pos_selected_agents, arr_k,
-                                                                           arr_pop)
-        # print('stopping agents:', arr_stop)
-        self.df_population['is_on_random_walk'] = self.df_population['is_on_random_walk'] & ~arr_stop
-        # print(self.df_population[['territory', 'col_id']])
-        # print(self.df_population['territory'])
-        self.df_population['territory'] = self.df_population['territory'] + \
-                                          arr_stop * (arr_pos_selected_agents - self.df_population['territory'])
-        # print(' ')
-        # print(self.df_population['territory'])
-        # print('---------')
-        # time.sleep(2.)
-
-        self.df_population['position'] = self.df_population['position'] + \
-                                          arr_stop * (arr_pos_selected_agents - self.df_population['position'])
-        return arr_stop
+# class RandomWalkOnSphere:
+#     """
+#     This class give the ability for the agent to perform random walks on a sphere. The directions are preserved between
+#     consecutive steps by using parallel transport.
+#     """
+#     def __init__(self):
+#         self.radius = 1.
+#         self.unit = 'km'
+#         if hasattr(self, 'df_population'):
+#             self.df_population['is_on_random_walk'] = False
+#             self.df_population['coord_x'] = np.nan
+#             self.df_population['coord_y'] = np.nan
+#             self.df_population['coord_z'] = np.nan
+#             self.df_population['direction_x'] = np.nan
+#             self.df_population['direction_y'] = np.nan
+#             self.df_population['direction_z'] = np.nan
+#         else:
+#             self.df_population = pd.DataFrame(columns=['is_on_random_walk', 'coord_x', 'coord_y', 'coord_z',
+#                                                        'direction_x', 'direction_y', 'direction_z'])
+#
+#         if hasattr(self, 'dict_default_values'):
+#             self.dict_default_values['is_on_random_walk'] = False
+#             self.dict_default_values['coord_x'] = np.nan
+#             self.dict_default_values['coord_y'] = np.nan
+#             self.dict_default_values['coord_z'] = np.nan
+#             self.dict_default_values['direction_x'] = np.nan
+#             self.dict_default_values['direction_y'] = np.nan
+#             self.dict_default_values['direction_z'] = np.nan
+#         else:
+#             self.dict_default_values = dict()
+#             self.dict_default_values['is_on_random_walk'] = False
+#             self.dict_default_values['coord_x'] = np.nan
+#             self.dict_default_values['coord_y'] = np.nan
+#             self.dict_default_values['coord_z'] = np.nan
+#             self.dict_default_values['direction_x'] = np.nan
+#             self.dict_default_values['direction_y'] = np.nan
+#             self.dict_default_values['direction_z'] = np.nan
+#         super().__init__()
+#
+#     def set_radius(self, radius, unit='km'):
+#         """
+#         Set the value of the radius of the sphere on which the agents walk.
+#         :param radius: float, value for the radius of the sphere.
+#         :param unit: optional, string, default 'km'. Unit used for distances. For the moment, this parameter is not
+#             used by any method.
+#         """
+#         self.radius = radius
+#         self.unit = unit
+#
+#     def _temp_exit_random_walk_based_on_k(self, arr_selected_agents, arr_pos_selected_agents, prob_settlement, alpha,
+#                                           arr_pop=None):
+#         """
+#         This method is considered private as it is a quick and dirty hack to have a 'kind of realistic' condition for
+#         exiting random walk state. This is not based on ANY literature, so be careful and use at your own risk.
+#         """
+#         arr_selected_agents = np.array(arr_selected_agents)
+#         # print('selected_agents', arr_selected_agents)
+#         arr_pos_selected_agents = np.array(arr_pos_selected_agents, dtype=np.int32)
+#         # print('pos_agents', arr_pos_selected_agents)
+#         # print(arr_pos_selected_agents)
+#         nb_agents = arr_selected_agents.sum()
+#         rand = np.random.uniform(0, 1, (nb_agents,))
+#         arr_k = np.array(self.graph.df_attributes['K'])
+#         if arr_pop is None:
+#             arr_pop = self.count_pop_per_vertex(position_attribute='territory')
+#         arr_pop = np.array(arr_pop, dtype=np.int32)
+#         arr_stop = _temp_random_walk_on_sphere_exit_random_walk_based_on_k(arr_selected_agents, rand, prob_settlement,
+#                                                                            alpha, arr_pos_selected_agents, arr_k,
+#                                                                            arr_pop)
+#         # print('stopping agents:', arr_stop)
+#         self.df_population['is_on_random_walk'] = self.df_population['is_on_random_walk'] & ~arr_stop
+#         # print(self.df_population[['territory', 'col_id']])
+#         # print(self.df_population['territory'])
+#         self.df_population['territory'] = self.df_population['territory'] + \
+#                                           arr_stop * (arr_pos_selected_agents - self.df_population['territory'])
+#         # print(' ')
+#         # print(self.df_population['territory'])
+#         # print('---------')
+#         # time.sleep(2.)
+#
+#         self.df_population['position'] = self.df_population['position'] + \
+#                                           arr_stop * (arr_pos_selected_agents - self.df_population['position'])
+#         return arr_stop
 

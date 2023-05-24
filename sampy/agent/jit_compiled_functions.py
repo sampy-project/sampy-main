@@ -35,9 +35,9 @@ def mortality_natural_death_orm_methodology(bias, rand, arr_prob_male, arr_prob_
             p = 1.
         else:
             if gender[i] == 0:
-                p = arr_prob_male[age[i]] * ((np.float(arr_count[pos[i]]) / np.float(k[pos[i]])) + bias)
+                p = arr_prob_male[age[i]] * ((float(arr_count[pos[i]]) / float(k[pos[i]])) + bias)
             else:
-                p = arr_prob_female[age[i]] * ((np.float(arr_count[pos[i]]) / np.float(k[pos[i]])) + bias)
+                p = arr_prob_female[age[i]] * ((float(arr_count[pos[i]]) / float(k[pos[i]])) + bias)
         if rand[i] <= p:
             rv[i] = False
             arr_count[pos[i]] -= 1
@@ -53,9 +53,9 @@ def mortality_natural_death_orm_methodology_condition_count(bias, rand, arr_prob
             p = 1.
         else:
             if gender[i] == 0:
-                p = arr_prob_male[age[i]] * ((np.float(arr_count[pos[i]]) / np.float(k[pos[i]])) + bias)
+                p = arr_prob_male[age[i]] * ((float(arr_count[pos[i]]) / float(k[pos[i]])) + bias)
             else:
-                p = arr_prob_female[age[i]] * ((np.float(arr_count[pos[i]]) / np.float(k[pos[i]])) + bias)
+                p = arr_prob_female[age[i]] * ((float(arr_count[pos[i]]) / float(k[pos[i]])) + bias)
         if rand[i] <= p:
             rv[i] = False
             if arr_cond_count[i]:
@@ -73,9 +73,9 @@ def mortality_natural_death_orm_methodology_condition_death(bias, rand, arr_prob
                 p = 1.
             else:
                 if gender[i] == 0:
-                    p = arr_prob_male[age[i]] * ((np.float(arr_count[pos[i]]) / np.float(k[pos[i]])) + bias)
+                    p = arr_prob_male[age[i]] * ((float(arr_count[pos[i]]) / float(k[pos[i]])) + bias)
                 else:
-                    p = arr_prob_female[age[i]] * ((np.float(arr_count[pos[i]]) / np.float(k[pos[i]])) + bias)
+                    p = arr_prob_female[age[i]] * ((float(arr_count[pos[i]]) / float(k[pos[i]])) + bias)
             if rand[i] <= p:
                 rv[i] = False
                 arr_count[pos[i]] -= 1
@@ -92,9 +92,9 @@ def mortality_natural_death_orm_methodology_both_cond(bias, rand, arr_prob_male,
                 p = 1.
             else:
                 if gender[i] == 0:
-                    p = arr_prob_male[age[i]] * ((np.float(arr_count[pos[i]]) / np.float(k[pos[i]])) + bias)
+                    p = arr_prob_male[age[i]] * ((float(arr_count[pos[i]]) / float(k[pos[i]])) + bias)
                 else:
-                    p = arr_prob_female[age[i]] * ((np.float(arr_count[pos[i]]) / np.float(k[pos[i]])) + bias)
+                    p = arr_prob_female[age[i]] * ((float(arr_count[pos[i]]) / float(k[pos[i]])) + bias)
             if rand[i] <= p:
                 rv[i] = False
                 if arr_cond_count[i]:
@@ -477,8 +477,10 @@ def random_walk_on_sphere_propose_step_gamma_law(arr_selected_agents, gamma_samp
             nmz_new_pos = nmz_new_pos / np.sqrt(nmz_new_pos[0] ** 2 + nmz_new_pos[1]**2 + nmz_new_pos[2]**2)
 
             direction = np.cos(angle) * direction - np.sin(angle) * nmz_pos
+            # this next line is just there to be absolutely sure we stay normal to the position
             direction = direction - (direction[0] * nmz_new_pos[0] + direction[1] * nmz_new_pos[1] +
                                      direction[2] * nmz_new_pos[2]) * nmz_new_pos
+            # extra normalization because this step will be repeated many time
             direction = direction / np.sqrt(direction[0]**2 + direction[1]**2 + direction[2]**2)
 
             r_pos_x[counter] = radius * nmz_new_pos[0]
@@ -508,8 +510,10 @@ def random_walk_on_sphere_make_step_gamma_law(arr_selected_agents, gamma_sample,
             nmz_new_pos = nmz_new_pos / np.sqrt(nmz_new_pos[0] ** 2 + nmz_new_pos[1]**2 + nmz_new_pos[2]**2)
 
             direction = np.cos(angle) * direction - np.sin(angle) * nmz_pos
+            # this next line is just there to be absolutely sure we stay normal to the position
             direction = direction - (direction[0] * nmz_new_pos[0] + direction[1] * nmz_new_pos[1] +
                                      direction[2] * nmz_new_pos[2]) * nmz_new_pos
+            # extra normalization because this step will be repeated many time
             direction = direction / np.sqrt(direction[0]**2 + direction[1]**2 + direction[2]**2)
 
             pos_x[i] = radius * nmz_new_pos[0]

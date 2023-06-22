@@ -46,7 +46,7 @@ class CullingSingleSpecies:
         :param condition: optional, 1D array of bool, default None.
         :param position_attribute: optional, string, default 'position'.
         """
-        array_cul_level = np.full((graph.number_vertices,), 0., dtype=np.float)
+        array_cul_level = np.full((graph.number_vertices,), 0., dtype=float)
         for id_vertex, level in dict_vertex_id_to_level.items():
             array_cul_level[graph.dict_cell_id_to_ind[id_vertex]] = level
         self.apply_culling_from_array(array_cul_level, condition=condition, position_attribute=position_attribute)

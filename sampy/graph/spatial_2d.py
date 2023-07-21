@@ -4,15 +4,37 @@ from .spatial_functions import create_2d_coords_from_oriented_connection_matrix
 
 class SpatialComponentsTwoDimensionalOrientedHexagons:
     """
-    Allow user to introduce "spatial components" to graphs based on Oriented Hexagons. Those new components are not
-    generated from the start, as most user may not need them, and users should
+    Allow user to introduce "spatial components" to graphs based on Oriented Hexagons. Essentially, it means creating
+    the coordinates of each component of each hexagon. Namely, it adds 2D coordinates for the centroids of each hexagon
+    and the coordinate of each vertex of each hexagon. By default, this is not done at the creation of the graph, unless
+    the user set the kwarg 'generate_polygons' to True. If so, note that the methods used to create those spatial
+    components assume that the underlying graph is connected.
+
+    :param generate_polygons: optional, boolean, default False. If True, spatial components are generated using the
+                              methods 'set_coords_from_vector' and 'create_hexagon_vertices'.
+    :param coord_first_vertex: optional, couple of float. (x, y) coordinates of the first centroid.
+    :param vector: optional, couple of float (u, v) used to recursively construct de coordinates of each vertex. To
+                    understand how, let us consider the vertex of index 'i' and assume it has coordinates (x, y). Then
+                    the vertex connections[i, 0] will have as coordinates (x, y) + (u, v), the vertex connections[i, 1]
+                    will have as coordinates (x, y) + rot(-pi/3)(u, v) (we rotate (u, v) by an anlge of pi/3 clockwise),
+                    the vertex connections[i, 2] will have as coordinates (x, y) + rot(-2 * pi/3)(u, v), etc...
     """
-    def __init__(self, **kwargs):
+    def __init__(self, generate_polygons=False, coord_first_vertex=None, vector=None, **kwargs):
         self.cell_vertices = None
-        self.index_cell_vertices = None
+
+        if generate_polygons:
+            if coord_first_vertex is None:
+                raise ValueError("You set 'generate_polygons' to true but did not provide any value for the kwarg "
+                                 "'coord_first_vertex'.")
+            if vector is None:
+                raise ValueError("You set 'generate_polygons' to true but did not provide any value for the kwarg "
+                                 "'vector'.")
+
+            self.set_coords_from_vector(coord_first_vertex, vector, **kwargs)
+            self.create_hexagon_vertices(**kwargs)
 
     def _sampy_debug_set_coords_from_vector(self, coord_first_vertex, vector, index_first_vertex=0,
-                                            attribute_coord_x='coord_x', attribute_coord_y='coord_y'):
+                                            attribute_coord_x='coord_x', attribute_coord_y='coord_y', **kwargs):
         if not hasattr(self, "connections"):
             raise ValueError("The graph object has no connection attribute.")
         if self.connections.shape[1] != 6:
@@ -23,7 +45,7 @@ class SpatialComponentsTwoDimensionalOrientedHexagons:
             raise ValueError("The graph object has no attribute df_attributes.")
 
     def set_coords_from_vector(self, coord_first_vertex, vector, index_first_vertex=0,
-                               attribute_coord_x='coord_x', attribute_coord_y='coord_y'):
+                               attribute_coord_x='coord_x', attribute_coord_y='coord_y', **kwargs):
         """
         WARNING: The graph is assumed to be connected.
 
@@ -70,7 +92,8 @@ class SpatialComponentsTwoDimensionalOrientedHexagons:
         self.df_attributes[attribute_coord_y] = coord_y
 
     def _sampy_debug_create_hexagon_vertices(self, attribute_coord_x='coord_x', attribute_coord_y='coord_y',
-                                             list_directions_to_neighbours=None, list_directions_to_hex_vert=None):
+                                             list_directions_to_neighbours=None, list_directions_to_hex_vert=None,
+                                             **kwargs):
         if not hasattr(self, 'df_attributes'):
             raise ValueError("The graph object has no attribute df_attributes.")
         if attribute_coord_x not in self.df_attributes.list_col_name:
@@ -95,13 +118,17 @@ class SpatialComponentsTwoDimensionalOrientedHexagons:
                                  "preferably a list).")
 
     def create_hexagon_vertices(self, attribute_coord_x='coord_x', attribute_coord_y='coord_y',
-                                list_directions_to_neighbours=None, list_directions_to_hex_vert=None):
+                                list_directions_to_neighbours=None, list_directions_to_hex_vert=None,
+                                **kwargs):
         """
         Create the vertices of each hexagon of the graph. It requires the centroids of the hexagon to have coordinates.
-        If the graph has at least one pair of neighbouring hexagon (which would be the case most of the time)
+        If the graph has at least one pair of neighbouring hexagon (which would be the case most of the time), then the
+        user does not need to provide the list of vectors from
 
-        :param attribute_coord_x:
-        :param attribute_coord_y:
+        :param attribute_coord_x: optional, string, default 'coord_x'. Name of the column of df_attributes in which to
+                                  store the x coordinates of the centroids.
+        :param attribute_coord_y: optional, string, default 'coord_y'. Name of the column of df_attributes in which to
+                                  store the y coordinates of the centroids.
         :param list_directions_to_hex_vert:
         :param list_directions_to_neighbours:
         """
@@ -111,11 +138,11 @@ class SpatialComponentsTwoDimensionalOrientedHexagons:
         # if the list of directions to the hexagon vertices is provided, we just compute the vertices and exit the
         # method
         if list_directions_to_hex_vert is not None:
-            self.hexagon_vertices = []
+            self.cell_vertices = []
             for x, y in zip(self.df_attributes[attribute_coord_x], self.df_attributes[attribute_coord_y]):
                 for u in list_directions_to_neighbours:
-                    self.hexagon_vertices.append([x + u[0], y + u[1]])
-            self.hexagon_vertices = np.array(self.hexagon_vertices)
+                    self.cell_vertices.append([x + u[0], y + u[1]])
+            self.cell_vertices = np.array(self.cell_vertices)
             return
 
         # we construct, if needed, the set of all the directions toward neighbours.
@@ -151,15 +178,19 @@ class SpatialComponentsTwoDimensionalOrientedHexagons:
         # we know create the directions to hexagon vertices
         list_directions_to_hex_vert = []
         for i in range(6):
+            # the 1/3 below is there cause the vertex can be seen as a barycenter of three points, one of them having
+            # coordinates (0., 0.).
             list_directions_to_hex_vert.append((1/3.) * (list_directions_to_neighbours[i] +
                                                          list_directions_to_neighbours[(i + 1) % 6]))
 
         # finally we create the hexagon vertices
-        self.hexagon_vertices = []
+        self.cell_vertices = []
         for x, y in zip(self.df_attributes[attribute_coord_x], self.df_attributes[attribute_coord_y]):
+            vertices_current_hexagon = []
             for u in list_directions_to_neighbours:
-                self.hexagon_vertices.append([x + u[0], y + u[1]])
-        self.hexagon_vertices = np.array(self.hexagon_vertices)
+                vertices_current_hexagon.append([x + u[0], y + u[1]])
+            self.cell_vertices.append(vertices_current_hexagon)
+        self.cell_vertices = np.array(self.cell_vertices)
 
 
 class SpatialComponentsSquareLattice:

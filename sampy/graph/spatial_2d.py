@@ -14,10 +14,10 @@ class SpatialComponentsTwoDimensionalOrientedHexagons:
                               methods 'set_coords_from_vector' and 'create_hexagon_vertices'.
     :param coord_first_vertex: optional, couple of float. (x, y) coordinates of the first centroid.
     :param vector: optional, couple of float (u, v) used to recursively construct de coordinates of each vertex. To
-                    understand how, let us consider the vertex of index 'i' and assume it has coordinates (x, y). Then
-                    the vertex connections[i, 0] will have as coordinates (x, y) + (u, v), the vertex connections[i, 1]
-                    will have as coordinates (x, y) + rot(-pi/3)(u, v) (we rotate (u, v) by an anlge of pi/3 clockwise),
-                    the vertex connections[i, 2] will have as coordinates (x, y) + rot(-2 * pi/3)(u, v), etc...
+                   understand how, let us consider the vertex of index 'i' and assume it has coordinates (x, y). Then
+                   the vertex connections[i, 0] will have as coordinates (x, y) + (u, v), the vertex connections[i, 1]
+                   will have as coordinates (x, y) + rot(-pi/3)(u, v) (we rotate (u, v) by an anlge of pi/3 clockwise),
+                   the vertex connections[i, 2] will have as coordinates (x, y) + rot(-2 * pi/3)(u, v), etc...
     """
     def __init__(self, generate_polygons=False, coord_first_vertex=None, vector=None, **kwargs):
         self.cell_vertices = None

@@ -195,7 +195,72 @@ class SpatialComponentsTwoDimensionalOrientedHexagons:
 
 class SpatialComponentsSquareLattice:
     """
+    Allow user to introduce "spatial components" to graphs based on SquareGrids. Essentially, it means creating
+    the coordinates of each component of each square. Namely, it adds 2D coordinates for the centroids of each square
+    and the coordinate of each vertex of each square. By default, this is not done at the creation of the graph, unless
+    the user set the kwarg 'generate_polygons' to True. Note that the methods introduced here assume the vertices IDs
+    are couples of integer (a, b), but do not assume the graph is connected. 
 
+    :param generate_polygons: optional, boolean, default False. If True, spatial components are generated using the
+                              methods 'set_coords_from_vector' and 'create_square_vertices'.
+    :param coord_first_vertex: optional, couple of float. (x, y) coordinates of the centroid of (0, 0).
+                               IMPORTANT: note that the vertex (0, 0) may not exist in the graph anymore, depending
+                               on what the user did, but this does not impact this method.
+    :param vector: optional, couple of float (u, v) used to recursively construct de coordinates of each vertex. 
+                   This vector is assumed to be the vector from the centroid of (0, 0) to the centroid of (1, 0).
+                   Those two vertices does not need to exist within the graph.
     """
-    def __init__(self, **kwargs):
-        pass
+    def __init__(self, generate_polygons=False, coord_first_vertex=None, vector=None, **kwargs):
+        self.cell_vertices = None
+
+        if generate_polygons:
+            if coord_first_vertex is None:
+                raise ValueError("You set 'generate_polygons' to true but did not provide any value for the kwarg "
+                                 "'coord_first_vertex'.")
+            if vector is None:
+                raise ValueError("You set 'generate_polygons' to true but did not provide any value for the kwarg "
+                                 "'vector'.")
+
+            self.set_coords_from_vector(coord_first_vertex, vector, **kwargs)
+            self.create_square_vertices(**kwargs)
+
+    def _sampy_debug_set_coords_from_vector(self, coord_first_vertex, vector, index_first_vertex=0,
+                                            attribute_coord_x='coord_x', attribute_coord_y='coord_y', **kwargs):
+        if not hasattr(self, "connections"):
+            raise ValueError("The graph object has no connection attribute.")
+        if (self.connections.shape[1] != 4) and (self.connections.shape[1] != 8):
+            raise ValueError("The connections attribute of the graph object is neither of shape (N, 4) nor (N, 8).")
+        for vertex_id in self.dict_cell_id_to_ind:
+            if (not isinstance(vertex_id, tuple)) or (len(vertex_id) != 2) or (not isinstance(vertex_id[0], int)) or (not isinstance(vertex_id[1], int)):
+                raise ValueError('In order to create the spatial components of the square lattice, the method ' + 
+                                 'the vertices id have to be tuples of the form (a, b), with a,b being integers.')
+        if not hasattr(self, 'df_attributes'):
+            raise ValueError("The graph object has no attribute df_attributes.")
+
+    def set_coords_from_vector(self, coord_first_vertex, vector, index_first_vertex=0,
+                               attribute_coord_x='coord_x', attribute_coord_y='coord_y', **kwargs):
+        """
+        WARNING: The graph is assumed to be connected.
+
+        Set the coordinates of the centroids of the hexagonal cells. The algorithm starts at the cell given by the
+        kwarg 'index_first_vertex', which receives as coordinates the one given in 'coord_first_vertex'. Then we loop
+        through each neighbours of the starting cell, giving coordinates to each one using the parameter 'vector' or a
+        rotation of it (see description of 'vector' parameter below for a more detailed explanation). We then repeat the
+        process with a vertex that has coordinates, and so on until each vertex has coordinates. This algorithm works
+        only if the graph is connected.
+
+        The results are stored as attributes in the dataframe df_attributes of the graph.
+
+        :param coord_first_vertex: couple of float. (x, y) coordinates of the first vertex.
+        :param vector: couple of float (u, v) used to recursively construct de coordinates of each vertex. To understand
+                       how, let us consider the vertex of index 'i' and assume it has coordinates (x, y). Then the
+                       vertex connections[i, 0] will have as coordinates (x, y) + (u, v), the vertex connections[i, 1]
+                       will have as coordinates (x, y) + rot(-pi/3)(u, v) (we rotate (u, v) by an anlge of pi/3
+                       clockwise), the vertex connections[i, 2] will have as coordinates (x, y) + rot(-2 * pi/3)(u, v),
+                       etc...
+        :param index_first_vertex: optional, non-negative integer, default 0.
+        :param attribute_coord_x: optional, string, default 'coord_x'. Name of the column of df_attributes in which to
+                                  store the x coordinates.
+        :param attribute_coord_y: optional, string, default 'coord_y'. Name of the column of df_attributes in which to
+                                  store the y coordinates.
+        """

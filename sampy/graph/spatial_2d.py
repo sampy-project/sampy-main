@@ -224,7 +224,7 @@ class SpatialComponentsSquareLattice:
             self.set_coords_from_vector(coord_first_vertex, vector, **kwargs)
             self.create_square_vertices(**kwargs)
 
-    def _sampy_debug_set_coords_from_vector(self, coord_first_vertex, vector, index_first_vertex=0,
+    def _sampy_debug_set_coords_from_vector(self, coord_first_vertex, vector,
                                             attribute_coord_x='coord_x', attribute_coord_y='coord_y', **kwargs):
         if not hasattr(self, "connections"):
             raise ValueError("The graph object has no connection attribute.")
@@ -237,30 +237,35 @@ class SpatialComponentsSquareLattice:
         if not hasattr(self, 'df_attributes'):
             raise ValueError("The graph object has no attribute df_attributes.")
 
-    def set_coords_from_vector(self, coord_first_vertex, vector, index_first_vertex=0,
+    def set_coords_from_vector(self, coord_first_vertex, vector,
                                attribute_coord_x='coord_x', attribute_coord_y='coord_y', **kwargs):
         """
-        WARNING: The graph is assumed to be connected.
+        WARNING: the IDs of the Vertices of the graph are assumed to have couple of integer (a, b) as Ids.
 
-        Set the coordinates of the centroids of the hexagonal cells. The algorithm starts at the cell given by the
-        kwarg 'index_first_vertex', which receives as coordinates the one given in 'coord_first_vertex'. Then we loop
-        through each neighbours of the starting cell, giving coordinates to each one using the parameter 'vector' or a
-        rotation of it (see description of 'vector' parameter below for a more detailed explanation). We then repeat the
-        process with a vertex that has coordinates, and so on until each vertex has coordinates. This algorithm works
-        only if the graph is connected.
+        Set the coordinates of the centroids of the square cells. 
 
         The results are stored as attributes in the dataframe df_attributes of the graph.
 
-        :param coord_first_vertex: couple of float. (x, y) coordinates of the first vertex.
-        :param vector: couple of float (u, v) used to recursively construct de coordinates of each vertex. To understand
-                       how, let us consider the vertex of index 'i' and assume it has coordinates (x, y). Then the
-                       vertex connections[i, 0] will have as coordinates (x, y) + (u, v), the vertex connections[i, 1]
-                       will have as coordinates (x, y) + rot(-pi/3)(u, v) (we rotate (u, v) by an anlge of pi/3
-                       clockwise), the vertex connections[i, 2] will have as coordinates (x, y) + rot(-2 * pi/3)(u, v),
-                       etc...
-        :param index_first_vertex: optional, non-negative integer, default 0.
+        :param coord_first_vertex: couple of float. (x, y) coordinates of centroid of the vertex (0, 0). This vertex
+                                   does not need to exist (it may have been cropped), and all the other centroids 
+                                   coordinates will be infered 'as if it existed'.
+        :param vector: couple of float (u, v) representing the vector from the centroid of (0, 0) to the centroid of
+                       (1, 0). Using this information, coord_first_vertex and the fact that we are working with a 2D 
+                       square grid, we construct the centroid of each square.
         :param attribute_coord_x: optional, string, default 'coord_x'. Name of the column of df_attributes in which to
                                   store the x coordinates.
         :param attribute_coord_y: optional, string, default 'coord_y'. Name of the column of df_attributes in which to
                                   store the y coordinates.
         """
+        coord_x = np.full(connections.shape[0], 0., dtype=float)
+        coord_y = np.full(connections.shape[0], 0., dtype=float)
+        rot_vector = np.array([-vector[1], vector[0]])
+
+        for vertex_id, vertex_index in self.dict_cell_id_to_ind.items():
+            coord_vertex = coord_first_vertex + float(vertex_id[0]) * vector + float(vertex_id[1]) * rot_vector
+            coord_x[vertex_index] = coord_vertex[0]
+            coord_y[vertex_index] = coord_vertex[1]
+
+        self.df_attributes[attribute_coord_x] = coord_x
+        self.df_attributes[attribute_coord_y] = coord_y
+            

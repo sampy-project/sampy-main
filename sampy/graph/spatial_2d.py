@@ -101,7 +101,7 @@ class SpatialComponentsTwoDimensionalOrientedHexagons:
                              "which is supposed to be the name of the column containing x coord of hexagon centroids.")
         if attribute_coord_y not in self.df_attributes.list_col_name:
             raise ValueError("The dataframe df_attributes in the graph has no column named " + attribute_coord_y + ", "
-                             "which is supposed to be the name of the column containing x coord of hexagon centroids.")
+                             "which is supposed to be the name of the column containing y coord of hexagon centroids.")
         if list_directions_to_neighbours is not None:
             nb_item = 0
             for _ in list_directions_to_neighbours:
@@ -187,7 +187,7 @@ class SpatialComponentsTwoDimensionalOrientedHexagons:
         self.cell_vertices = []
         for x, y in zip(self.df_attributes[attribute_coord_x], self.df_attributes[attribute_coord_y]):
             vertices_current_hexagon = []
-            for u in list_directions_to_neighbours:
+            for u in list_directions_to_hex_vert:
                 vertices_current_hexagon.append([x + u[0], y + u[1]])
             self.cell_vertices.append(vertices_current_hexagon)
         self.cell_vertices = np.array(self.cell_vertices)
@@ -222,7 +222,7 @@ class SpatialComponentsSquareLattice:
                                  "'vector'.")
 
             self.set_coords_from_vector(coord_first_vertex, vector, **kwargs)
-            self.create_square_vertices(**kwargs)
+            self.create_square_vertices(vector, **kwargs)
 
     def _sampy_debug_set_coords_from_vector(self, coord_first_vertex, vector,
                                             attribute_coord_x='coord_x', attribute_coord_y='coord_y', **kwargs):
@@ -257,8 +257,8 @@ class SpatialComponentsSquareLattice:
         :param attribute_coord_y: optional, string, default 'coord_y'. Name of the column of df_attributes in which to
                                   store the y coordinates.
         """
-        coord_x = np.full(connections.shape[0], 0., dtype=float)
-        coord_y = np.full(connections.shape[0], 0., dtype=float)
+        coord_x = np.full(self.connections.shape[0], 0., dtype=float)
+        coord_y = np.full(self.connections.shape[0], 0., dtype=float)
         rot_vector = np.array([-vector[1], vector[0]])
 
         for vertex_id, vertex_index in self.dict_cell_id_to_ind.items():
@@ -268,4 +268,47 @@ class SpatialComponentsSquareLattice:
 
         self.df_attributes[attribute_coord_x] = coord_x
         self.df_attributes[attribute_coord_y] = coord_y
+
+    def _sampy_debug_create_square_vertices(self, vector, attribute_coord_x='coord_x', attribute_coord_y='coord_y', **kwargs):
+        if not hasattr(self, 'df_attributes'):
+            raise ValueError("The graph object has no attribute df_attributes.")
+        if attribute_coord_x not in self.df_attributes.list_col_name:
+            raise ValueError("The dataframe df_attributes in the graph has no column named " + attribute_coord_x + ", "
+                             "which is supposed to be the name of the column containing x coord of square centroids.")
+        if attribute_coord_y not in self.df_attributes.list_col_name:
+            raise ValueError("The dataframe df_attributes in the graph has no column named " + attribute_coord_y + ", "
+                             "which is supposed to be the name of the column containing y coord of square centroids.")
+        try:
+            arr_vect = np.array(vector)
+            if arr_vect.shape != (2,) :
+                raise ValueError("The parameter 'vector' should contain an object that can be casted " +
+                                "into a numpy array of shape (2,).")
+        except Exception:
+            raise ValueError("The parameter 'vector' should contain an object that can be casted " +
+                                "into a numpy array.")
+
+    def create_square_vertices(self, vector, attribute_coord_x='coord_x', attribute_coord_y='coord_y', **kwargs):
+        """
+
+        :param vector: Object that can be casted into a float numpy array of shape (2,). Represent the vector
+                       from the centroid of (0, 0) to the centroid of (1, 0).
+        :param attribute_coord_x: optional, string, default 'coord_x'. Name of the column of df_attributes in which to
+                                  store the x coordinates.
+        :param attribute_coord_y: optional, string, default 'coord_y'. Name of the column of df_attributes in which to
+                                  store the y coordinates.
+        """
+        vector = np.asfarray(np.array(vector))
+        rot_vect = np.array([-vector[1], vector[0]])
+        list_dir_to_square_vert = [.5*(vector + rot_vect), .5*(-vector + rot_vect),
+                                   .5*(-vector - rot_vect), .5*(vector - rot_vect)]
+        
+        # finally we create the hexagon vertices
+        self.cell_vertices = []
+        for x, y in zip(self.df_attributes[attribute_coord_x], self.df_attributes[attribute_coord_y]):
+            vertices_current_square = []
+            for u in list_dir_to_square_vert:
+                vertices_current_square.append([x + u[0], y + u[1]])
+            self.cell_vertices.append(vertices_current_square)
+        self.cell_vertices = np.array(self.cell_vertices)
+            
             

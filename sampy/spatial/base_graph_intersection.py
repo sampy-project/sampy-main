@@ -26,5 +26,7 @@ class BaseGraphIntersection:
         self.connections_g2_to_g1 = None
         self.weights_g2_to_g1 = None
 
+        pass
+
 
 

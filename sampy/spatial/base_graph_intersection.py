@@ -3,6 +3,8 @@ import numpy as np
 
 class BaseGraphIntersection:
     """
+    todo
+
     Define the basic attributes.
         graph_1: graph object
         graph_2: graph object

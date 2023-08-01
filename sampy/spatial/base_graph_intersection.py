@@ -10,7 +10,24 @@ class BaseGraphIntersection:
     [w_1, w_2, ..., w_n] in g_i such that the a_v and a_w_k intersect for all k, and to know the proportion
     of a_v in this intersection.
 
-    Given that the number 
+    Given that the number n_v of vertices in g2 intersecting a vertex v of g1 may vary widely accross 
+    vertices, we do not store those intersections using a 2D arrays. Instead, this information is stored
+    using three one dimensional arrays, indexes_gi_to_gj, connections_gi_to_gj and weights_gi_to_gj 
+    constructed as follows:
+        the intersections of the vertex v of index k in gi can be gathered by first getting the 
+        integers 
+
+            p = indexes_gi_to_gj[k] and q = indexes_gi_to_gj[k + 1]. 
+
+        Then, the integers
+
+            [connections_gi_to_gj[p], 
+             connections_gi_to_gj[p + 1], 
+             ..., 
+             connections_gi_to_gj[q - 1]]
+
+        are the indexes in gj of the vertices that intersect v. The corresponding elements in
+        weights_gi_to_gj give the 'proportion of intersection'.
 
     Define the basic attributes.
         graph_1: graph object

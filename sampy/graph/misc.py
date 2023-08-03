@@ -504,12 +504,93 @@ def create_grid_hexagonal_cells(nb_hex_x_axis, nb_hex_y_axis):
     weights[nb_hex_y_axis - 1][2] = 2/3.
     weights[nb_hex_y_axis - 1][3] = 1.
 
-    # bottom right
+    # the final shape depends on the parity of nb_hex_x_axis, hence the following cases
     if nb_hex_x_axis % 2 == 0:
-        pass
 
-    return connections, weights
+        # bottom right
+        connections[(nb_hex_x_axis - 1) * nb_hex_y_axis][0] = (nb_hex_x_axis - 1) * nb_hex_y_axis + 1
+        connections[(nb_hex_x_axis - 1) * nb_hex_y_axis][4] = (nb_hex_x_axis - 2) * nb_hex_y_axis
+        connections[(nb_hex_x_axis - 1) * nb_hex_y_axis][5] = (nb_hex_x_axis - 2) * nb_hex_y_axis + 1
+        weights[(nb_hex_x_axis - 1) * nb_hex_y_axis][0] = 1/3.
+        weights[(nb_hex_x_axis - 1) * nb_hex_y_axis][4] = 2/3.
+        weights[(nb_hex_x_axis - 1) * nb_hex_y_axis][5] = 1.
 
+        # top right
+        connections[nb_hex_x_axis * nb_hex_y_axis - 1][0] = nb_hex_x_axis * nb_hex_y_axis - 2
+        connections[nb_hex_x_axis * nb_hex_y_axis - 1][5] = (nb_hex_x_axis - 1) * nb_hex_y_axis - 1
+        weights[nb_hex_x_axis * nb_hex_y_axis - 1][0] = .5
+        weights[nb_hex_x_axis * nb_hex_y_axis - 1][5] = 1.
+
+    else:
+
+        # bottom right
+        connections[(nb_hex_x_axis - 1) * nb_hex_y_axis][0] = (nb_hex_x_axis - 1) * nb_hex_y_axis + 1
+        connections[(nb_hex_x_axis - 1) * nb_hex_y_axis][5] = (nb_hex_x_axis - 2) * nb_hex_y_axis
+        weights[(nb_hex_x_axis - 1) * nb_hex_y_axis][0] = .5
+        weights[(nb_hex_x_axis - 1) * nb_hex_y_axis][5] = 1.
+
+        # top right
+        connections[nb_hex_x_axis * nb_hex_y_axis - 1][3] = nb_hex_x_axis * nb_hex_y_axis - 2
+        connections[nb_hex_x_axis * nb_hex_y_axis - 1][4] = (nb_hex_x_axis - 1) * nb_hex_y_axis - 2
+        connections[nb_hex_x_axis * nb_hex_y_axis - 1][5] = (nb_hex_x_axis - 1) * nb_hex_y_axis - 1
+        weights[nb_hex_x_axis * nb_hex_y_axis - 1][3] = 1/3.
+        weights[nb_hex_x_axis * nb_hex_y_axis - 1][4] = 2/3.
+        weights[nb_hex_x_axis * nb_hex_y_axis - 1][5] = 1.
+
+    # we know deal with the leftmost side
+    for i in range(1, nb_hex_y_axis - 1):
+        connections[i][0] = i + 1
+        connections[i][1] = i + nb_hex_y_axis
+        connections[i][2] = i + nb_hex_y_axis - 1
+        connections[i][3] = i - 1
+        weights[i][0] = 1/4.
+        weights[i][1] = 1/2.
+        weights[i][2] = 3/4.
+        weights[i][3] = 1.
+
+    # from there, we will fill the arrays one vertical strip at a time, letting the rightmost
+    # one for the final part of the function
+    for i in range(1, nb_hex_x_axis - 1):
+        for j in range(nb_hex_y_axis):
+            index_hex = i * nb_hex_y_axis + j
+            if i % 2 == 1:
+                if j == 0:
+                    connections[index_hex][0] = index_hex + 1
+                    connections[index_hex][1] = index_hex + nb_hex_y_axis + 1
+                    connections[index_hex][2] = index_hex + nb_hex_y_axis
+                    connections[index_hex][4] = index_hex - nb_hex_y_axis
+                    connections[index_hex][5] = index_hex - nb_hex_y_axis + 1
+                    weights[index_hex][0] = .2
+                    weights[index_hex][1] = .4
+                    weights[index_hex][2] = .6
+                    weights[index_hex][4] = .8
+                    weights[index_hex][5] = 1.
+
+                elif j == nb_hex_y_axis - 1:
+                    connections[index_hex][2] = index_hex + nb_hex_y_axis
+                    connections[index_hex][3] = index_hex -1
+                    connections[index_hex][4] = index_hex - nb_hex_y_axis
+                    weights[index_hex][2] = 1/3.
+                    weights[index_hex][3] = 2/3.
+                    weights[index_hex][4] = 1.
+
+                else:
+                    connections[index_hex][0] = index_hex + 1
+                    connections[index_hex][1] = index_hex + nb_hex_y_axis + 1
+                    connections[index_hex][2] = index_hex + nb_hex_y_axis
+                    connections[index_hex][3] = index_hex -1
+                    connections[index_hex][4] = index_hex - nb_hex_y_axis
+                    connections[index_hex][5] = index_hex - nb_hex_y_axis + 1
+                    weights[index_hex][0] = 1/6.
+                    weights[index_hex][1] = 2/6.
+                    weights[index_hex][2] = .5
+                    weights[index_hex][3] = 4/6.
+                    weights[index_hex][4] = 5/6.
+                    weights[index_hex][5] = 1.
+
+            else:
+                pass
+            
 
 def save_as_repository_include_metadata(path_to_folder, dict_metadata, df_attributes,
                                         connections, weights, erase_folder=True):

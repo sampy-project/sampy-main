@@ -623,6 +623,11 @@ def create_grid_hexagonal_cells(nb_hex_x_axis, nb_hex_y_axis):
                     weights[index_hex][4] = 5/6.
                     weights[index_hex][5] = 1.
 
+    # now the rightmost strip
+    if nb_hex_x_axis % 2 == 0:
+        pass
+    else:
+        pass
 
 def save_as_repository_include_metadata(path_to_folder, dict_metadata, df_attributes,
                                         connections, weights, erase_folder=True):

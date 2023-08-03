@@ -17,7 +17,8 @@ class BaseGraphIntersection:
         the intersections of the vertex v of index k in gi can be gathered by first getting the 
         integers 
 
-            p = indexes_gi_to_gj[k] and q = indexes_gi_to_gj[k + 1]. 
+            p = indexes_gi_to_gj[k]
+            q = indexes_gi_to_gj[k + 1]
 
         Then, the integers
 
@@ -27,7 +28,7 @@ class BaseGraphIntersection:
              connections_gi_to_gj[q - 1]]
 
         are the indexes in gj of the vertices that intersect v. The corresponding elements in
-        weights_gi_to_gj give the 'proportion of intersection'.
+        weights_gi_to_gj give the 'proportion of intersection' between v and the associated vertex.
 
     Define the basic attributes.
         graph_1: graph object

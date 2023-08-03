@@ -475,102 +475,38 @@ class SubdividedIcosahedron:
                               str(nb_penta) + ' pentagonal vertices instead of 12.')
 
 
-def create_grid_hexagonal_cells(len_side_a, len_side_b):
+def create_grid_hexagonal_cells(nb_hex_x_axis, nb_hex_y_axis):
     """
-    Note : this function is kind of broken, in the sense that the obtained map is heavily deformed. Should be changed.
-    :param len_side_a:
-    :param len_side_b:
-    :return: two numpy arrays of shape (len_side_a*len_side_b, 6)
-    """
-    connections = np.zeros((len_side_a * len_side_b, 6), dtype=np.int32)
-    weights = np.zeros((len_side_a * len_side_b, 6), dtype=np.float64)
+    Create a grid of oriented hexagonal cells. 
 
-    # first 4 corner
+    :param nb_hex_x_axis: integer, should be bigger than 2
+    :param nb_hex_y_axis: integer, should be bigger than 2
+
+    :return: two numpy arrays of shape (nb_hex_x_axis * nb_hex_y_axis, 6)
+    """
+    if nb_hex_y_axis < 2 or nb_hex_x_axis < 2:
+        raise ValueError("Both 'nb_hex_x_axis' and 'nb_hex_y_axis' should be strictly bigger than 2.")
+    connections = np.full((nb_hex_x_axis * nb_hex_y_axis, 6), -1, dtype=int)
+    weights = np.full((nb_hex_x_axis * nb_hex_y_axis, 6), -1., dtype=float)
+
+    # we start with the four corners
+    # bottom left
     connections[0][0] = 1
-    weights[0][0] = 0.5
-    connections[0][1] = len_side_b
-    weights[0][1] = 1.0
+    connections[0][1] = nb_hex_y_axis
+    weights[0][0] = .5
+    weights[0][1] = 1.
 
-    connections[len_side_b - 1][0] = len_side_b - 2
-    weights[len_side_b - 1][0] = 1 / 3
-    connections[len_side_b - 1][1] = 2 * len_side_b - 2
-    weights[len_side_b - 1][1] = 2 / 3
-    connections[len_side_b - 1][2] = 2 * len_side_b - 1
-    weights[len_side_b - 1][2] = 1.0
+    # top left
+    connections[nb_hex_y_axis - 1][1] = 2 * nb_hex_y_axis - 1
+    connections[nb_hex_y_axis - 1][2] = 2 * nb_hex_y_axis - 2
+    connections[nb_hex_y_axis - 1][3] = nb_hex_y_axis - 2
+    weights[nb_hex_y_axis - 1][1] = 1/3.
+    weights[nb_hex_y_axis - 1][2] = 2/3.
+    weights[nb_hex_y_axis - 1][3] = 1.
 
-    connections[len_side_b * (len_side_a - 1)][0] = len_side_b * (len_side_a - 2)
-    weights[len_side_b * (len_side_a - 1)][0] = 1 / 3
-    connections[len_side_b * (len_side_a - 1)][1] = len_side_b * (len_side_a - 2) + 1
-    weights[len_side_b * (len_side_a - 1)][1] = 2 / 3
-    connections[len_side_b * (len_side_a - 1)][2] = len_side_b * (len_side_a - 1) + 1
-    weights[len_side_b * (len_side_a - 1)][2] = 1.
-
-    connections[len_side_a * len_side_b - 1][0] = (len_side_a - 1) * len_side_b - 1
-    weights[len_side_a * len_side_b - 1][0] = 0.5
-    connections[len_side_a * len_side_b - 1][1] = len_side_a * len_side_b - 2
-    weights[len_side_a * len_side_b - 1][1] = 1.0
-
-    # take care of the 4 borders
-    for i in range(1, len_side_a - 1):
-        ind_vert = len_side_b * i
-        connections[ind_vert][0] = ind_vert - len_side_b
-        weights[ind_vert][0] = 0.25
-        connections[ind_vert][1] = ind_vert - len_side_b + 1
-        weights[ind_vert][1] = 0.5
-        connections[ind_vert][2] = ind_vert + 1
-        weights[ind_vert][2] = 0.75
-        connections[ind_vert][3] = ind_vert + len_side_b
-        weights[ind_vert][3] = 1.0
-
-    for i in range(1, len_side_a - 1):
-        ind_vert = len_side_b * (i + 1) - 1
-        connections[ind_vert][0] = ind_vert - len_side_b
-        weights[ind_vert][0] = 0.25
-        connections[ind_vert][1] = ind_vert - 1
-        weights[ind_vert][1] = 0.5
-        connections[ind_vert][2] = ind_vert + len_side_b - 1
-        weights[ind_vert][2] = 0.75
-        connections[ind_vert][3] = ind_vert + len_side_b
-        weights[ind_vert][3] = 1.0
-
-    for i in range(1, len_side_b - 1):
-        ind_vert = i
-        connections[ind_vert][0] = ind_vert - 1
-        weights[ind_vert][0] = 0.25
-        connections[ind_vert][1] = ind_vert + 1
-        weights[ind_vert][1] = 0.5
-        connections[ind_vert][2] = ind_vert + len_side_b - 1
-        weights[ind_vert][2] = 0.75
-        connections[ind_vert][3] = ind_vert + len_side_b
-        weights[ind_vert][3] = 1.0
-
-    for i in range(1, len_side_b - 1):
-        ind_vert = (len_side_a - 1) * len_side_b + i
-        connections[ind_vert][0] = ind_vert - len_side_b
-        weights[ind_vert][0] = 0.25
-        connections[ind_vert][1] = ind_vert - len_side_b + 1
-        weights[ind_vert][1] = 0.5
-        connections[ind_vert][2] = ind_vert - 1
-        weights[ind_vert][2] = 0.75
-        connections[ind_vert][3] = ind_vert + 1
-        weights[ind_vert][3] = 1.0
-
-    # making graph structure of the center of the graph
-    for i in range(len_side_a - 2):
-        for j in range(len_side_b - 2):
-            ind_vert = len_side_b * (i + 1) + (j + 1)
-            connections[ind_vert][0] = ind_vert - len_side_b
-            weights[ind_vert][0] = 1 / 6
-            connections[ind_vert][1] = ind_vert - len_side_b + 1
-            weights[ind_vert][1] = 2 / 6
-            connections[ind_vert][2] = ind_vert - 1
-            weights[ind_vert][2] = 3 / 6
-            connections[ind_vert][3] = ind_vert + 1
-            weights[ind_vert][3] = 4 / 6
-            connections[ind_vert][4] = ind_vert + len_side_b - 1
-            weights[ind_vert][4] = 5 / 6
-            connections[ind_vert][5] = ind_vert + len_side_b
-            weights[ind_vert][5] = 1.0
+    # bottom right
+    if nb_hex_x_axis % 2 == 0:
+        pass
 
     return connections, weights
 

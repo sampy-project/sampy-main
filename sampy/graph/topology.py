@@ -261,13 +261,25 @@ class IcosphereTopology(BaseTopology):
         self.df_attributes['surface_cell'] = arr_surface
 
 
-class OrientedHexagonalGrid(BaseTopology):
+class OrientedHexagonalGridOnSquare(BaseTopology):
     """
-    Create an hexagonal lattice on a square. Each
+    Create an hexagonal grid on a square. The shape of the 5 x 3 grid is as follows:
+
+       *   *       *   *       *   *
+     *       *   *       *   *       *
+       *   *       *   *       *   *
+     *       *   *       *   *       *
+       *   *       *   *       *   *
+     *       *   *       *   *       *
+       *   *       *   *       *   *
+
     """
     def __init__(self, nb_hex_x_axis=None, nb_hex_y_axis=None, **kwargs):
         """
         :param nb_hex_x_axis: mandatory kwargs. Integer, number of hexagons on the horizontal axis.
         :param nb_hex_y_axis: mandatory kwargs. Integer, number of hexagons on the vertical axis.
         """
-        pass
+        if (nb_hex_x_axis is None) or (nb_hex_y_axis is None):
+            raise ValueError("Mandatory kwargs missing: 'nb_hex_x_axis' and/or 'nb_hex_y_axis'." + 
+                             " Integers strictly bigger than Two are expected.")
+        self.connections, self.weights = create_grid_hexagonal_cells(nb_hex_x_axis, nb_hex_y_axis)

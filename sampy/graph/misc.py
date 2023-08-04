@@ -648,6 +648,8 @@ def create_grid_hexagonal_cells(nb_hex_x_axis, nb_hex_y_axis):
             weights[index_hex][4] = 0.75
             weights[index_hex][5] = 1.
 
+    return connections, weights
+
 
 def save_as_repository_include_metadata(path_to_folder, dict_metadata, df_attributes,
                                         connections, weights, erase_folder=True):

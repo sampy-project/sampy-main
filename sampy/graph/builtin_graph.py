@@ -1,7 +1,8 @@
 from .topology import (SquareGridWithDiagTopology,
                        SquareGridTopology,
                        SquareGridsConvertBetween1DArrayAnd2DArrays,
-                       IcosphereTopology)
+                       IcosphereTopology,
+                       OrientedHexagonalGridOnSquare)
 from .vertex_attributes import PeriodicAttributes, BaseVertexAttributes, AttributesFrom2DArraysSquareGrids
 from .from_files import SaveAndLoadSquareGrids
 from ..utils.decorators import sampy_class
@@ -118,3 +119,9 @@ class IcosphereGraph(BaseVertexAttributes,
         self.connections = new_connections
         self.weights = new_weights
         self.df_attributes = self.df_attributes[array_vertices_to_keep]
+
+
+class OrientedHexagonalLattice(OrientedHexagonalGridOnSquare,
+                               BaseVertexAttributes):
+    def __init__(self, **kwargs):
+        pass

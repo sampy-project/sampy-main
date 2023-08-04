@@ -121,6 +121,7 @@ class IcosphereGraph(BaseVertexAttributes,
         self.df_attributes = self.df_attributes[array_vertices_to_keep]
 
 
+@sampy_class
 class OrientedHexagonalLattice(OrientedHexagonalGridOnSquare,
                                BaseVertexAttributes):
     def __init__(self, **kwargs):

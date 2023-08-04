@@ -5,6 +5,7 @@ from sampy.graph.topology import SquareGridWithDiagTopology
 from sampy.graph.vertex_attributes import BaseVertexAttributes
 from sampy.utils.decorators import sampy_class, use_debug_mode
 from sampy.pandas_xs.pandas_xs import DataFrameXS
+from sampy.graph.builtin_graph import OrientedHexagonalLattice
 
 import numpy as np
 
@@ -191,3 +192,43 @@ class TestBaseVertexAttributes(unittest.TestCase):
         current_object.create_vertex_attribute('test2', [i % 2 for i in range(10)])
         current_object.change_type_attribute('test2', 'bool')
         self.assertTrue((current_object.df_attributes['test2'] == np.array([i % 2 == 1 for i in range(10)])).all())
+
+
+class TestOrientedHexagonalLattice(unittest.TestCase):
+    def test_object_creation(self):
+        with self.assertRaises(ValueError):
+            OrientedHexagonalLattice()
+
+        with self.assertRaises(ValueError):
+            OrientedHexagonalLattice(nb_hex_x_axis=2, nb_hex_y_axis=3)
+
+        with self.assertRaises(ValueError):
+            OrientedHexagonalLattice(nb_hex_x_axis=3, nb_hex_y_axis=2)
+
+        hex_grid = OrientedHexagonalLattice(nb_hex_x_axis=3, nb_hex_y_axis=3)
+        self.assertTrue(hasattr(hex_grid, 'df_attributes'))
+        self.assertTrue(hasattr(hex_grid, 'connections'))
+        self.assertTrue(hasattr(hex_grid, 'weights'))
+
+        target_connections = np.array([[ 1,  3, -1, -1, -1, -1],
+                                       [ 2,  4,  3,  0, -1, -1],
+                                       [-1,  5,  4,  1, -1, -1],
+                                       [ 4,  7,  6, -1,  0,  1],
+                                       [ 5,  8,  7,  3,  1,  2],
+                                       [-1, -1,  8,  4,  2, -1],
+                                       [ 7, -1, -1, -1, -1,  3],
+                                       [ 8, -1, -1,  6,  3,  4],
+                                       [-1, -1, -1,  7,  4,  5]])
+        
+        self.assertTrue((hex_grid.connections == target_connections).all())
+
+
+np.array([[ 1,  3, -1, -1, -1, -1],
+          [ 2,  4,  3,  0, -1, -1],
+          [-1,  5,  4,  1, -1, -1],
+          [ 4,  7,  6, -1,  0,  1],
+          [ 5,  8,  7,  3,  1,  2],
+          [-1, -1,  8,  4,  2, -1],
+          [ 7, -1, -1, -1, -1,  3],
+          [ 8, -1, -1,  6,  3,  4],
+          [-1, -1, -1,  7,  4,  5]])

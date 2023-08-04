@@ -484,7 +484,7 @@ def create_grid_hexagonal_cells(nb_hex_x_axis, nb_hex_y_axis):
 
     :return: two numpy arrays of shape (nb_hex_x_axis * nb_hex_y_axis, 6)
     """
-    if nb_hex_y_axis < 2 or nb_hex_x_axis < 2:
+    if nb_hex_y_axis < 3 or nb_hex_x_axis < 3:
         raise ValueError("Both 'nb_hex_x_axis' and 'nb_hex_y_axis' should be strictly bigger than 2.")
     connections = np.full((nb_hex_x_axis * nb_hex_y_axis, 6), -1, dtype=int)
     weights = np.full((nb_hex_x_axis * nb_hex_y_axis, 6), -1., dtype=float)

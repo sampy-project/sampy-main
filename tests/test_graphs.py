@@ -221,15 +221,61 @@ class TestOrientedHexagonalLattice(unittest.TestCase):
                                        [-1, -1, -1,  7,  4,  5]])
         
         self.assertTrue((hex_grid.connections == target_connections).all())
+
+        self.assertTrue(((hex_grid.connections >= 0) == (hex_grid.weights > 0.)).all())
     
         hex_grid = OrientedHexagonalLattice(nb_hex_x_axis=4, nb_hex_y_axis=3)
         self.assertTrue(hasattr(hex_grid, 'df_attributes'))
         self.assertTrue(hasattr(hex_grid, 'connections'))
         self.assertTrue(hasattr(hex_grid, 'weights'))
 
+        target_connections = np.array([[ 1,  3, -1, -1, -1, -1],
+                                       [ 2,  4,  3,  0, -1, -1],
+                                       [-1,  5,  4,  1, -1, -1],
+                                       [ 4,  7,  6, -1,  0,  1],
+                                       [ 5,  8,  7,  3,  1,  2],
+                                       [-1, -1,  8,  4,  2, -1],
+                                       [ 7,  9, -1, -1, -1,  3],
+                                       [ 8, 10,  9,  6,  3,  4],
+                                       [-1, 11, 10,  7,  4,  5],
+                                       [10, -1, -1, -1,  6,  7],
+                                       [11, -1, -1,  9,  7,  8],
+                                       [-1, -1, -1, 10,  8, -1]])
+        
+        self.assertTrue((hex_grid.connections == target_connections).all())
+
+        self.assertTrue(((hex_grid.connections >= 0) == (hex_grid.weights > 0.)).all())
+
     def test_bigger_scale_even(self):
-        hex_grid = OrientedHexagonalLattice(nb_hex_x_axis=10, nb_hex_y_axis=10)
+        hex_grid = OrientedHexagonalLattice(nb_hex_x_axis=6, nb_hex_y_axis=8)
+        self.assertTrue(hex_grid.connections.shape == (48, 6))
+        self.assertTrue(hex_grid.weights.shape == (48, 6))
+
+        self.assertTrue(((hex_grid.connections >= 0) == (hex_grid.weights > 0.)).all())
+
+        self.assertTrue((hex_grid.connections[38] == np.array([39, 46, 45, 37, 29, 30])).all())
+        self.assertTrue((hex_grid.connections[19] == np.array([20, 27, 26, 18, 10, 11])).all())
+
+        self.assertTrue((hex_grid.connections[47] == np.array([-1, -1, -1, 46, 39, -1])).all())
+        self.assertTrue((hex_grid.connections[40] == np.array([41, -1, -1, -1, 32, 33])).all())
+        self.assertTrue((hex_grid.connections[7] == np.array([-1, 15, 14, 6, -1, -1])).all())
+        self.assertTrue((hex_grid.connections[0] == np.array([1, 8, -1, -1, -1, -1])).all())
 
     def test_bigger_scale_odd(self):
-        hex_grid = OrientedHexagonalLattice(nb_hex_x_axis=10, nb_hex_y_axis=10)
+        hex_grid = OrientedHexagonalLattice(nb_hex_x_axis=7, nb_hex_y_axis=8)
+
+        self.assertTrue(hex_grid.connections.shape == (56, 6))
+        self.assertTrue(hex_grid.weights.shape == (56, 6))
+
+        self.assertTrue(((hex_grid.connections >= 0) == (hex_grid.weights > 0.)).all())
+
+        self.assertTrue((hex_grid.connections[38] == np.array([39, 46, 45, 37, 29, 30])).all())
+        self.assertTrue((hex_grid.connections[19] == np.array([20, 27, 26, 18, 10, 11])).all())
+        self.assertTrue((hex_grid.connections[45] == np.array([46, 54, 53, 44, 37, 38])).all())
+        self.assertTrue((hex_grid.connections[47] == np.array([-1, -1, 55, 46, 39, -1])).all())
+
+        self.assertTrue((hex_grid.connections[55] == np.array([-1, -1, -1, 54, 46, 47])).all())
+        self.assertTrue((hex_grid.connections[48] == np.array([49, -1, -1, -1, -1, 40])).all())
+        self.assertTrue((hex_grid.connections[7] == np.array([-1, 15, 14, 6, -1, -1])).all())
+        self.assertTrue((hex_grid.connections[0] == np.array([1, 8, -1, -1, -1, -1])).all())
 

@@ -603,9 +603,9 @@ def create_grid_hexagonal_cells(nb_hex_x_axis, nb_hex_y_axis):
                     connections[index_hex][3] = index_hex - 1
                     connections[index_hex][4] = index_hex - nb_hex_y_axis - 1
                     connections[index_hex][5] = index_hex - nb_hex_y_axis
-                    weights[index_hex][0] = .2
-                    weights[index_hex][1] = .4
-                    weights[index_hex][2] = .6
+                    weights[index_hex][1] = .2
+                    weights[index_hex][2] = .4
+                    weights[index_hex][3] = .6
                     weights[index_hex][4] = .8
                     weights[index_hex][5] = 1.
 

@@ -625,9 +625,29 @@ def create_grid_hexagonal_cells(nb_hex_x_axis, nb_hex_y_axis):
 
     # now the rightmost strip
     if nb_hex_x_axis % 2 == 0:
-        pass
+        for i in range(1, nb_hex_y_axis - 1):
+            index_hex = (nb_hex_x_axis - 1) * nb_hex_y_axis + i
+            connections[index_hex][0] = index_hex + 1
+            connections[index_hex][3] = index_hex - 1
+            connections[index_hex][4] = index_hex - nb_hex_y_axis
+            connections[index_hex][5] = index_hex - nb_hex_y_axis + 1
+            weights[index_hex][0] = 0.25
+            weights[index_hex][3] = 0.5
+            weights[index_hex][4] = 0.75
+            weights[index_hex][5] = 1.
+
     else:
-        pass
+        for i in range(1, nb_hex_y_axis - 1):
+            index_hex = (nb_hex_x_axis - 1) * nb_hex_y_axis + i
+            connections[index_hex][0] = index_hex + 1
+            connections[index_hex][3] = index_hex - 1
+            connections[index_hex][4] = index_hex - nb_hex_y_axis - 1
+            connections[index_hex][5] = index_hex - nb_hex_y_axis
+            weights[index_hex][0] = 0.25
+            weights[index_hex][3] = 0.5
+            weights[index_hex][4] = 0.75
+            weights[index_hex][5] = 1.
+
 
 def save_as_repository_include_metadata(path_to_folder, dict_metadata, df_attributes,
                                         connections, weights, erase_folder=True):

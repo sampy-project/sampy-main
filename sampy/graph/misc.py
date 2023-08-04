@@ -516,10 +516,10 @@ def create_grid_hexagonal_cells(nb_hex_x_axis, nb_hex_y_axis):
         weights[(nb_hex_x_axis - 1) * nb_hex_y_axis][5] = 1.
 
         # top right
-        connections[nb_hex_x_axis * nb_hex_y_axis - 1][0] = nb_hex_x_axis * nb_hex_y_axis - 2
-        connections[nb_hex_x_axis * nb_hex_y_axis - 1][5] = (nb_hex_x_axis - 1) * nb_hex_y_axis - 1
-        weights[nb_hex_x_axis * nb_hex_y_axis - 1][0] = .5
-        weights[nb_hex_x_axis * nb_hex_y_axis - 1][5] = 1.
+        connections[nb_hex_x_axis * nb_hex_y_axis - 1][3] = nb_hex_x_axis * nb_hex_y_axis - 2
+        connections[nb_hex_x_axis * nb_hex_y_axis - 1][4] = (nb_hex_x_axis - 1) * nb_hex_y_axis - 1
+        weights[nb_hex_x_axis * nb_hex_y_axis - 1][3] = .5
+        weights[nb_hex_x_axis * nb_hex_y_axis - 1][4] = 1.
 
     else:
 

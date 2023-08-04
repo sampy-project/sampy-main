@@ -221,14 +221,15 @@ class TestOrientedHexagonalLattice(unittest.TestCase):
                                        [-1, -1, -1,  7,  4,  5]])
         
         self.assertTrue((hex_grid.connections == target_connections).all())
+    
+        hex_grid = OrientedHexagonalLattice(nb_hex_x_axis=4, nb_hex_y_axis=3)
+        self.assertTrue(hasattr(hex_grid, 'df_attributes'))
+        self.assertTrue(hasattr(hex_grid, 'connections'))
+        self.assertTrue(hasattr(hex_grid, 'weights'))
 
+    def test_bigger_scale_even(self):
+        hex_grid = OrientedHexagonalLattice(nb_hex_x_axis=10, nb_hex_y_axis=10)
 
-np.array([[ 1,  3, -1, -1, -1, -1],
-          [ 2,  4,  3,  0, -1, -1],
-          [-1,  5,  4,  1, -1, -1],
-          [ 4,  7,  6, -1,  0,  1],
-          [ 5,  8,  7,  3,  1,  2],
-          [-1, -1,  8,  4,  2, -1],
-          [ 7, -1, -1, -1, -1,  3],
-          [ 8, -1, -1,  6,  3,  4],
-          [-1, -1, -1,  7,  4,  5]])
+    def test_bigger_scale_odd(self):
+        hex_grid = OrientedHexagonalLattice(nb_hex_x_axis=10, nb_hex_y_axis=10)
+

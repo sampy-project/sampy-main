@@ -279,3 +279,50 @@ class TestOrientedHexagonalLattice(unittest.TestCase):
         self.assertTrue((hex_grid.connections[7] == np.array([-1, 15, 14, 6, -1, -1])).all())
         self.assertTrue((hex_grid.connections[0] == np.array([1, 8, -1, -1, -1, -1])).all())
 
+    def test_basic_spatial_components(self):
+        hex_grid = OrientedHexagonalLattice(nb_hex_x_axis=3, nb_hex_y_axis=3)
+        hex_grid.set_coords_from_vector((0, 0), (0, 1))
+        self.assertTrue('coord_x' in hex_grid.df_attributes.dict_colname_to_index)
+        self.assertTrue('coord_y' in hex_grid.df_attributes.dict_colname_to_index)
+        self.assertTrue(hex_grid.df_attributes['coord_x'][0] == 0.)
+        self.assertTrue(hex_grid.df_attributes['coord_y'][0] == 0.)
+
+        hex_grid = OrientedHexagonalLattice(nb_hex_x_axis=100, nb_hex_y_axis=100)
+        hex_grid.set_coords_from_vector((0, 0), (0, 1))
+        self.assertTrue('coord_x' in hex_grid.df_attributes.dict_colname_to_index)
+        self.assertTrue('coord_y' in hex_grid.df_attributes.dict_colname_to_index)
+        self.assertTrue(hex_grid.df_attributes['coord_x'][0] == 0.)
+        self.assertTrue(hex_grid.df_attributes['coord_y'][0] == 0.)
+
+        hex_grid = OrientedHexagonalLattice(nb_hex_x_axis=3, nb_hex_y_axis=3)
+        hex_grid.set_coords_from_vector((2.4, 3.5), (0, 1))
+        self.assertTrue('coord_x' in hex_grid.df_attributes.dict_colname_to_index)
+        self.assertTrue('coord_y' in hex_grid.df_attributes.dict_colname_to_index)
+        self.assertTrue(hex_grid.df_attributes['coord_x'][0] == 2.4)
+        self.assertTrue(hex_grid.df_attributes['coord_y'][0] == 3.5)
+
+        hex_grid = OrientedHexagonalLattice(nb_hex_x_axis=3, nb_hex_y_axis=3)
+        hex_grid.set_coords_from_vector((0, 2), (0, 1), 
+                                        attribute_coord_x='beep',
+                                        attribute_coord_y='boop')
+        self.assertTrue('beep' in hex_grid.df_attributes.dict_colname_to_index)
+        self.assertTrue('boop' in hex_grid.df_attributes.dict_colname_to_index)
+        self.assertTrue(hex_grid.df_attributes['beep'][0] == 0.)
+        self.assertTrue(hex_grid.df_attributes['boop'][0] == 2.)
+
+    def test_advanced_spatial_components(self):
+        hex_grid = OrientedHexagonalLattice(nb_hex_x_axis=3, nb_hex_y_axis=3)
+        hex_grid.set_coords_from_vector((0, 0), (0, 1))
+
+        target_x = np.array([0., 0., 0., 
+                             0.8660254, 0.8660254, 0.8660254, 
+                             1.73205081, 1.73205081, 1.73205081], 
+                             dtype=np.float64)
+        target_y = np.array([0.0, 1.0, 2.0, 
+                             0.5, 1.5, 2.5, 
+                             0., 1.0, 2.0],
+                             dtype=np.float64)
+        
+        err_x = hex_grid.df_attributes['coord_x'] - target_x
+        success = np.abs(err_x) < 1e-8
+        self.assertTrue(success.all())

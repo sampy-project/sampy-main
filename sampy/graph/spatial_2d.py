@@ -45,7 +45,8 @@ class SpatialComponentsTwoDimensionalOrientedHexagons:
             raise ValueError("The graph object has no attribute df_attributes.")
 
     def set_coords_from_vector(self, coord_first_vertex, vector, index_first_vertex=0,
-                               attribute_coord_x='coord_x', attribute_coord_y='coord_y', **kwargs):
+                               attribute_coord_x='coord_x', attribute_coord_y='coord_y', 
+                               threshold=1e-12, **kwargs):
         """
         WARNING: The graph is assumed to be connected.
 
@@ -70,17 +71,23 @@ class SpatialComponentsTwoDimensionalOrientedHexagons:
                                   store the x coordinates.
         :param attribute_coord_y: optional, string, default 'coord_y'. Name of the column of df_attributes in which to
                                   store the y coordinates.
+        :param threshold: optional, float, default 1e-10. Threshold under which values are considered 0 (needed 
+                          because of cos and sin computations)
         """
 
         # we first create the six main directions where a neighbouring hexagon could be.
-        list_directions_to_neighbours = [np.array(vector)]
+        list_directions_to_neighbours = [np.array(vector, dtype=np.float64)]
         for i in range(5):
             # the rotation is of -pi/3, cause the orientation is made clockwise.
             # the signs and such have been changes below using cos and sin parity.
             x = np.cos(np.pi / 3) * list_directions_to_neighbours[i][0] + \
                 np.sin(np.pi / 3) * list_directions_to_neighbours[i][1]
+            if np.abs(x) < threshold:
+                x = 0.
             y = - np.sin(np.pi / 3) * list_directions_to_neighbours[i][0] + \
                 np.cos(np.pi / 3) * list_directions_to_neighbours[i][1]
+            if np.abs(y) < threshold:
+                y = 0.
             list_directions_to_neighbours.append(np.array([x, y]))
 
         coord_x, coord_y = create_2d_coords_from_oriented_connection_matrix(self.connections,

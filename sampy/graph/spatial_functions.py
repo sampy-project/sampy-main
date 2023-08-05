@@ -41,10 +41,10 @@ def create_2d_coords_from_oriented_connection_matrix(connections, index_first_ve
             raise ValueError("Error encountered while creating vertices' coordinates. The most likely explanation"
                              " is that the graph is not connected.")
         for j in range(connections.shape[1]):
-            if connections[current_vertex, j] not in set_index_vert_with_coords:
-                coord_x[connections[i, j]] = coord_x[current_vertex] + list_vectors[j][0]
-                coord_y[connections[i, j]] = coord_y[current_vertex] + list_vectors[j][1]
-                list_index_vert_with_coords.append(connections[i, j])
-                set_index_vert_with_coords.add(connections[i, j])
+            if (connections[current_vertex, j] not in set_index_vert_with_coords) and (connections[current_vertex, j] != -1):
+                coord_x[connections[current_vertex, j]] = coord_x[current_vertex] + list_vectors[j][0]
+                coord_y[connections[current_vertex, j]] = coord_y[current_vertex] + list_vectors[j][1]
+                list_index_vert_with_coords.append(connections[current_vertex, j])
+                set_index_vert_with_coords.add(connections[current_vertex, j])
 
     return coord_x, coord_y

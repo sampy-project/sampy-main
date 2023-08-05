@@ -5,6 +5,7 @@ from .topology import (SquareGridWithDiagTopology,
                        OrientedHexagonalGridOnSquare)
 from .vertex_attributes import PeriodicAttributes, BaseVertexAttributes, AttributesFrom2DArraysSquareGrids
 from .from_files import SaveAndLoadSquareGrids
+from .spatial_2d import SpatialComponentsTwoDimensionalOrientedHexagons
 from ..utils.decorators import sampy_class
 from .misc import save_as_repository_include_metadata
 from .jit_compiled_functions import keep_subgraph_from_array_of_bool_equi_weight
@@ -123,6 +124,7 @@ class IcosphereGraph(BaseVertexAttributes,
 
 @sampy_class
 class OrientedHexagonalLattice(OrientedHexagonalGridOnSquare,
-                               BaseVertexAttributes):
+                               BaseVertexAttributes,
+                               SpatialComponentsTwoDimensionalOrientedHexagons):
     def __init__(self, **kwargs):
         pass

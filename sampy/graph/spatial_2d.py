@@ -166,10 +166,10 @@ class SpatialComponentsTwoDimensionalOrientedHexagons:
                         initial_vec = np.array([X[self.connections[i, j]] - X[i],
                                                 Y[self.connections[i, j]] - Y[i]])
                         for k in range(6):
-                            x = np.cos(k * np.pi / 3) * initial_vec[i][0] + \
-                                np.sin(k * np.pi / 3) * initial_vec[i][1]
-                            y = - np.sin(k * np.pi / 3) * initial_vec[i][0] + \
-                                np.cos(k * np.pi / 3) * initial_vec[i][1]
+                            x = np.cos(k * np.pi / 3) * initial_vec[0] + \
+                                np.sin(k * np.pi / 3) * initial_vec[1]
+                            y = - np.sin(k * np.pi / 3) * initial_vec[0] + \
+                                np.cos(k * np.pi / 3) * initial_vec[1]
                             list_directions_to_neighbours[(j + k) % 6] = np.array([x, y])
                         break
 

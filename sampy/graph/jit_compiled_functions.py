@@ -167,3 +167,20 @@ def keep_subgraph_from_array_of_bool_equi_weight(arr_keep, connections):
 
     return new_arr_connections, new_arr_weights
 
+
+@nb.njit
+def intersect_two_positively_oriented_2D_convex_polygons(vertices_poly_1, vertices_poly_2, threshold):
+    list_vert_p2_in_p1 = []
+    list_vert_p1_in_p2 = []
+    for i in range(vertices_poly_2.shape[0]):
+        is_in_poly_1 = True
+        for j in range(vertices_poly_1.shape[0]):
+            next_ind = (j + 1) % vertices_poly_1.shape[0]
+            prod_scal = (vertices_poly_2[i, 0] - vertices_poly_1[j, 0])*(vertices_poly_1[j, 1] - vertices_poly_1[next_ind, 1]) + \
+                        (vertices_poly_2[i, 1] - vertices_poly_1[j, 1])*(vertices_poly_1[j, 0] - vertices_poly_1[next_ind, 0])
+            if prod_scal < - threshold:
+                is_in_poly_1 = False
+                break
+        if is_in_poly_1:
+            list_vert_p2_in_p1.append(vertices_poly_2[i, :])
+

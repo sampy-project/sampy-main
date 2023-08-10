@@ -48,3 +48,6 @@ def create_2d_coords_from_oriented_connection_matrix(connections, index_first_ve
                 set_index_vert_with_coords.add(connections[current_vertex, j])
 
     return coord_x, coord_y
+
+
+

@@ -158,7 +158,7 @@ class SpatialComponentsTwoDimensionalOrientedHexagons:
             vect_found = False
 
             # to construct the directions, we need to find a vertex that has at least one neighbour. The other
-            # directions are obtained by rotating it clockwise by pi/3 five times.
+            # directions are obtained by rotating it counterclockwise by pi/3 five times.
             for i in range(self.connections.shape[0]):
                 for j in range(self.connections.shape[1]):
                     if self.connections[i, j] != -1:
@@ -166,9 +166,9 @@ class SpatialComponentsTwoDimensionalOrientedHexagons:
                         initial_vec = np.array([X[self.connections[i, j]] - X[i],
                                                 Y[self.connections[i, j]] - Y[i]])
                         for k in range(6):
-                            x = np.cos(k * np.pi / 3) * initial_vec[0] + \
+                            x = np.cos(k * np.pi / 3) * initial_vec[0] - \
                                 np.sin(k * np.pi / 3) * initial_vec[1]
-                            y = - np.sin(k * np.pi / 3) * initial_vec[0] + \
+                            y = np.sin(k * np.pi / 3) * initial_vec[0] + \
                                 np.cos(k * np.pi / 3) * initial_vec[1]
                             list_directions_to_neighbours[(j + k) % 6] = np.array([x, y])
                         break

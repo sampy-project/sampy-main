@@ -168,7 +168,7 @@ def keep_subgraph_from_array_of_bool_equi_weight(arr_keep, connections):
     return new_arr_connections, new_arr_weights
 
 
-@nb.njit
+# @nb.njit
 def intersect_two_positively_oriented_2D_convex_polygons(vertices_poly_1, vertices_poly_2, threshold):
     list_vert_in_intersection = []
     for i in range(vertices_poly_2.shape[0]):
@@ -176,7 +176,7 @@ def intersect_two_positively_oriented_2D_convex_polygons(vertices_poly_1, vertic
         for j in range(vertices_poly_1.shape[0]):
             next_ind = (j + 1) % vertices_poly_1.shape[0]
             prod_scal = (vertices_poly_2[i, 0] - vertices_poly_1[j, 0])*(vertices_poly_1[j, 1] - vertices_poly_1[next_ind, 1]) + \
-                        (vertices_poly_2[i, 1] - vertices_poly_1[j, 1])*(vertices_poly_1[j, 0] - vertices_poly_1[next_ind, 0])
+                        (vertices_poly_2[i, 1] - vertices_poly_1[j, 1])*(vertices_poly_1[next_ind, 0] - vertices_poly_1[j, 0])
             if prod_scal < - threshold:
                 is_in_poly_1 = False
                 break
@@ -188,10 +188,48 @@ def intersect_two_positively_oriented_2D_convex_polygons(vertices_poly_1, vertic
         for j in range(vertices_poly_2.shape[0]):
             next_ind = (j + 1) % vertices_poly_2.shape[0]
             prod_scal = (vertices_poly_1[i, 0] - vertices_poly_2[j, 0])*(vertices_poly_2[j, 1] - vertices_poly_2[next_ind, 1]) + \
-                        (vertices_poly_1[i, 1] - vertices_poly_2[j, 1])*(vertices_poly_2[j, 0] - vertices_poly_2[next_ind, 0])
+                        (vertices_poly_1[i, 1] - vertices_poly_2[j, 1])*(vertices_poly_2[next_ind, 0] - vertices_poly_2[j, 0])
             if prod_scal < - threshold:
                 is_in_poly_2 = False
                 break
         if is_in_poly_2:
             list_vert_in_intersection.append(vertices_poly_1[i, :])
+
+    # we now look for the intersections between the sides of the polygons
+    # we follow the method and notations used in this post :
+    # https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
+    for i in range(vertices_poly_1.shape[0]):
+        next_i = (i + 1) % vertices_poly_1.shape[0]
+        for j in range(vertices_poly_2.shape[0]):
+            next_j = (j + 1) % vertices_poly_2.shape[0]
+            r = vertices_poly_1[next_i, :] - vertices_poly_1[i, :]
+            s = vertices_poly_2[next_j, :] - vertices_poly_2[j, :]
+            r_cross_s = r[0] * s[1] - r[1] * s[0]
+
+            # if r_cross_s is 0, then the segments are parallel
+            if np.abs(r_cross_s) < threshold:
+                continue
+
+            q_minus_p = vertices_poly_2[j, :] - vertices_poly_1[i, :]
+            t = (q_minus_p[0] * s[1] - q_minus_p[1] * s[0]) / r_cross_s
+
+            # if t is negative or bigger than 1, then the lines intersect, but not the segments
+            if t < 0 or t > 1:
+                continue
+
+            s = (q_minus_p[0] * r[1] - q_minus_p[1] * r[0]) / r_cross_s
+
+            # same remark as before
+            if s < 0 or s > 1:
+                continue
+
+            list_vert_in_intersection.append(vertices_poly_1[i, :] + t * r)
+    
+    return np.array(list_vert_in_intersection)
+
+
+
+
+
+    return list_vert_in_intersection
 

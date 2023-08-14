@@ -224,8 +224,25 @@ def intersect_two_positively_oriented_2D_convex_polygons(vertices_poly_1, vertic
                 continue
 
             list_vert_in_intersection.append(vertices_poly_1[i, :] + t * r)
+
+    if list_vert_in_intersection:
+        center_inter = np.array([0., 0.])
+        for vert in list_vert_in_intersection:
+            center_inter += vert
+        center_inter = center_inter / len(list_vert_in_intersection)
+
+        list_angle_and_dist = []
+        for vert in list_vert_in_intersection:
+            translated_vert = vert - center_inter
+            dist = np.linalg.norm(translated_vert)
+            angle = np.arccos(translated_vert[0]/np.linalg.norm(translated_vert))
+            oriented_angle = np.sign(-translated_vert[1]) * angle
+            list_angle_and_dist.append((oriented_angle, dist))
     
-    return np.array(list_vert_in_intersection)
+        return True, np.array(list_vert_in_intersection), np.array(list_angle_and_dist)
+    
+    else:
+        return False, None, None
 
 
 

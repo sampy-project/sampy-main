@@ -239,14 +239,7 @@ def intersect_two_positively_oriented_2D_convex_polygons(vertices_poly_1, vertic
             oriented_angle = np.sign(-translated_vert[1]) * angle
             list_angle_and_dist.append((oriented_angle, dist))
     
-        return True, np.array(list_vert_in_intersection), np.array(list_angle_and_dist)
+        return True, np.array(list_vert_in_intersection), list_angle_and_dist
     
     else:
         return False, None, None
-
-
-
-
-
-    return list_vert_in_intersection
-

@@ -60,7 +60,30 @@ class GraphIntersectionFromCoordsAndRadius:
 
 class GraphIntersectionConvexPolygons:
     """
-    todo
+    This building block assumes the following attributes are here:
+
+        graph_1: graph object
+        graph_2: graph object
+
+        indexes_g1_to_g2: 1D array of integers
+        connections_g1_to_g2: 1D array of integers
+        weights_g1_to_g2: 1D array of floats
+
+        indexes_g2_to_g1: 1D array of integers
+        connections_g2_to_g1: 1D array of integers
+        weights_g2_to_g1: 1D array of floats
     """
     def __init__(self, **kwargs):
+        pass
+
+    def compute_intersection(g1_poly_vertices=None, attribute_g1_poly_vertices='cell_vertices',
+                             g2_poly_vertices=None, attribute_g2_poly_vertices='cell_vertices'):
+        """
+        todo
+
+        :param g1_poly_vertices:
+        :param attribute_g1_poly_vertices:
+        :param g2_poly_vertices:
+        :param attribute_g2_poly_vertices:
+        """
         pass

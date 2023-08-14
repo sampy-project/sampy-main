@@ -1,5 +1,6 @@
 import numpy as np
 import numba as nb
+from numba.typed import List
 
 
 @nb.njit
@@ -64,7 +65,7 @@ def proximity_get_closest_point_expand_dist_and_ind_arrays(selected_agents, dist
 
 @nb.njit
 def intersect_two_positively_oriented_2D_convex_polygons(vertices_poly_1, vertices_poly_2, threshold):
-    list_vert_in_intersection = []
+    list_vert_in_intersection = List()
     for i in range(vertices_poly_2.shape[0]):
         is_in_poly_1 = True
         for j in range(vertices_poly_1.shape[0]):
@@ -119,20 +120,21 @@ def intersect_two_positively_oriented_2D_convex_polygons(vertices_poly_1, vertic
 
             list_vert_in_intersection.append(vertices_poly_1[i, :] + t * r)
 
-    if list_vert_in_intersection:
-        center_inter = np.array([0., 0.])
-        for vert in list_vert_in_intersection:
-            center_inter += vert
-        center_inter = center_inter / len(list_vert_in_intersection)
+    return list_vert_in_intersection
 
-        list_angle = []
-        for vert in list_vert_in_intersection:
-            translated_vert = vert - center_inter
-            angle = np.arccos(translated_vert[0]/np.linalg.norm(translated_vert))
-            oriented_angle = np.sign(-translated_vert[1]) * angle
-            list_angle.append(-oriented_angle)
-    
-        return True, np.array(list_vert_in_intersection), list_angle
-    
-    else:
-        return False, None, None
+
+@nb.njit
+def compute_oriented_angles_from_baricenter(list_vertices):
+    center_inter = np.array([0., 0.])
+    for vert in list_vertices:
+        center_inter += vert
+    center_inter = center_inter / len(list_vertices)
+
+    list_angle = List()
+    for vert in list_vertices:
+        translated_vert = vert - center_inter
+        angle = np.arccos(translated_vert[0]/np.linalg.norm(translated_vert))
+        oriented_angle = np.sign(-translated_vert[1]) * angle
+        list_angle.append(-oriented_angle)
+
+    return list_angle

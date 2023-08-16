@@ -120,7 +120,49 @@ def intersect_two_positively_oriented_2D_convex_polygons(vertices_poly_1, vertic
 
             list_vert_in_intersection.append(vertices_poly_1[i, :] + t * r)
 
-    return list_vert_in_intersection
+    # if len(list_vert_in_intersection) <= 2:
+    #     return 0.
+
+    # we get rid of the repetitions using the threshold value
+    arr_keep_vertices = np.full(len(list_vert_in_intersection), True)
+    for i in range(len(list_vert_in_intersection)):
+        for j in range(i + 1, len(list_vert_in_intersection)):
+            if arr_keep_vertices[j] and \
+                np.linalg.norm(list_vert_in_intersection[i] - list_vert_in_intersection[j]) < threshold:
+                arr_keep_vertices[j] = False
+
+    vert_in_intersection = np.full((arr_keep_vertices.sum(), 2), 0.)
+    counter = 0
+    for i in range(len(list_vert_in_intersection)):
+        if arr_keep_vertices[i]:
+            vert_in_intersection[counter, 0] = list_vert_in_intersection[i][0]
+            vert_in_intersection[counter, 1] = list_vert_in_intersection[i][1]
+            counter += 1
+
+    # we compute oriented angles to order the vertices in the direct orientation 
+    # (needed for computing the area)
+    arr_angles = np.full(vert_in_intersection.shape[0], 0.)
+    center_inter = np.array([0., 0.])
+    for i in range(vert_in_intersection.shape[0]):
+        center_inter += vert_in_intersection[i, :]
+    center_inter = center_inter / vert_in_intersection.shape[0]
+
+    for i in range(arr_angles.shape[0]):
+        translated_vert = vert_in_intersection[i] - center_inter
+        angle = np.arccos(translated_vert[0]/np.linalg.norm(translated_vert))
+        oriented_angle = np.sign(translated_vert[1]) * angle
+        arr_angles[i] = oriented_angle
+
+    vert_in_intersection = vert_in_intersection[np.argsort(arr_angles)]
+
+    area = 0.
+    for i in range(vert_in_intersection.shape[0]):
+        next_i = (i + 1) % vert_in_intersection.shape[0]
+        area += vert_in_intersection[i, 0] * vert_in_intersection[next_i, 1] - \
+            vert_in_intersection[i, 1] * vert_in_intersection[next_i, 0]
+    area = area / 2.
+
+    return area
 
 
 @nb.njit

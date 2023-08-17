@@ -86,4 +86,8 @@ class GraphIntersectionConvexPolygons:
         :param g2_poly_vertices:
         :param attribute_g2_poly_vertices:
         """
-        pass
+        if g1_poly_vertices is None:
+            try:
+                g1_poly_vertices = getattr(self, attribute_g1_poly_vertices)
+            except AttributeError:
+                raise ValueError('')

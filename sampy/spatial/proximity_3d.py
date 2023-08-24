@@ -1,7 +1,6 @@
 import numpy as np
 
 from scipy.spatial import cKDTree
-# from netCDF4 import Dataset
 
 from .jit_compiled_functions import (conditional_proximity_is_step_allowed_return_infos,
                                      proximity_is_step_allowed_return_infos,
@@ -58,23 +57,23 @@ class BaseProximity3dFromLatLonGrid:
 
     :param grid_lats: 2D array of float, latitudes of the points.
     :param grid_lons: 2D array of float, longitude of the points.
-    :param radius: float, radius of the sphere on which the points live
+    :param sphere_radius: float, radius of the sphere on which the points live
     :param arr_radius_point: 1d array of float, giving the "radius" around each point of the proximity object.
     :param allowed_points: optional, 2D array of bool, default None.
     """
-    def __init__(self, grid_lats=None, grid_lons=None, radius=None, arr_radius_point=None, allowed_points=None,
+    def __init__(self, grid_lats=None, grid_lons=None, sphere_radius=None, arr_radius_point=None, allowed_points=None,
                  **kwargs):
         if grid_lats is None:
             raise ValueError("No value for grid_lats kwarg has been given.")
         if grid_lons is None:
             raise ValueError("No value for grid_lons kwarg has been given.")
-        if radius is None:
+        if sphere_radius is None:
             raise ValueError("No value for radius kwarg has been given.")
 
         # start creating the proximity 3d thingy
-        grid_coord_x = radius * np.cos(np.radians(grid_lats)) * np.cos(np.radians(grid_lons))
-        grid_coord_y = radius * np.cos(np.radians(grid_lats)) * np.sin(np.radians(grid_lons))
-        grid_coord_z = radius * np.sin(np.radians(grid_lats))
+        grid_coord_x = sphere_radius * np.cos(np.radians(grid_lats)) * np.cos(np.radians(grid_lons))
+        grid_coord_y = sphere_radius * np.cos(np.radians(grid_lats)) * np.sin(np.radians(grid_lons))
+        grid_coord_z = sphere_radius * np.sin(np.radians(grid_lats))
 
         if arr_radius_point is None:
             arr_radius_point = np.full(grid_lats.shape, -1.)

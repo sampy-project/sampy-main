@@ -1,8 +1,10 @@
 from .proximity_3d import (BaseProximity3dFromArrays, 
                            BaseProximity3dFromLatLonGrid,
                            Proximity3dBasicSpatialQueries)
+from ..utils.decorators import sampy_class
 
 
+@sampy_class
 class Proximity3DFromLatLonGrid(BaseProximity3dFromLatLonGrid,
                                 Proximity3dBasicSpatialQueries):
     """

@@ -164,19 +164,3 @@ def intersect_two_positively_oriented_2D_convex_polygons(vertices_poly_1, vertic
 
     return area
 
-
-@nb.njit
-def compute_oriented_angles_from_baricenter(list_vertices):
-    center_inter = np.array([0., 0.])
-    for vert in list_vertices:
-        center_inter += vert
-    center_inter = center_inter / len(list_vertices)
-
-    list_angle = List()
-    for vert in list_vertices:
-        translated_vert = vert - center_inter
-        angle = np.arccos(translated_vert[0]/np.linalg.norm(translated_vert))
-        oriented_angle = np.sign(-translated_vert[1]) * angle
-        list_angle.append(-oriented_angle)
-
-    return list_angle

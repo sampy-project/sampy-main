@@ -283,3 +283,8 @@ class OrientedHexagonalGridOnSquare(BaseTopology):
             raise ValueError("Mandatory kwargs missing: 'nb_hex_x_axis' and/or 'nb_hex_y_axis'." + 
                              " Integers strictly bigger than Two are expected.")
         self.connections, self.weights = create_grid_hexagonal_cells(nb_hex_x_axis, nb_hex_y_axis)
+        counter = 0
+        for i in range(nb_hex_x_axis):
+            for j in range(nb_hex_y_axis):
+                self.dict_cell_id_to_ind[(i, j)] = counter
+                counter += 1

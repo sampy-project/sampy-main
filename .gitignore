@@ -2,3 +2,5 @@
 __pycache__/
 test_hex_grid_geojson.py
 example_data_climatic.nc
+test_hex_grid_visua.py
+script_video.py

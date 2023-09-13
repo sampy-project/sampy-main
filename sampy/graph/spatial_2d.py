@@ -1,5 +1,6 @@
 import numpy as np
 from .spatial_functions import create_2d_coords_from_oriented_connection_matrix
+from .jit_compiled_functions import compute_area_oriented_array_of_conv_polygons_same_nb_vert
 
 
 class SpatialComponentsTwoDimensionalOrientedHexagons:
@@ -199,6 +200,9 @@ class SpatialComponentsTwoDimensionalOrientedHexagons:
             self.cell_vertices.append(vertices_current_hexagon)
         self.cell_vertices = np.array(self.cell_vertices)
 
+    def create_surface_column(self, attribute_surface='surface'):
+        self.df_attributes['surface'] = compute_area_oriented_array_of_conv_polygons_same_nb_vert(self.cell_vertices)
+
 
 class SpatialComponentsSquareLattice:
     """
@@ -217,19 +221,8 @@ class SpatialComponentsSquareLattice:
                    This vector is assumed to be the vector from the centroid of (0, 0) to the centroid of (1, 0).
                    Those two vertices does not need to exist within the graph.
     """
-    def __init__(self, generate_polygons=False, coord_first_vertex=None, vector=None, **kwargs):
+    def __init__(self, **kwargs):
         self.cell_vertices = None
-
-        if generate_polygons:
-            if coord_first_vertex is None:
-                raise ValueError("You set 'generate_polygons' to true but did not provide any value for the kwarg "
-                                 "'coord_first_vertex'.")
-            if vector is None:
-                raise ValueError("You set 'generate_polygons' to true but did not provide any value for the kwarg "
-                                 "'vector'.")
-
-            self.set_coords_from_vector(coord_first_vertex, vector, **kwargs)
-            self.create_square_vertices(vector, **kwargs)
 
     def _sampy_debug_set_coords_from_vector(self, coord_first_vertex, vector,
                                             attribute_coord_x='coord_x', attribute_coord_y='coord_y', **kwargs):
@@ -238,9 +231,10 @@ class SpatialComponentsSquareLattice:
         if (self.connections.shape[1] != 4) and (self.connections.shape[1] != 8):
             raise ValueError("The connections attribute of the graph object is neither of shape (N, 4) nor (N, 8).")
         for vertex_id in self.dict_cell_id_to_ind:
-            if (not isinstance(vertex_id, tuple)) or (len(vertex_id) != 2) or (not isinstance(vertex_id[0], int)) or (not isinstance(vertex_id[1], int)):
-                raise ValueError('In order to create the spatial components of the square lattice, the method ' + 
-                                 'the vertices id have to be tuples of the form (a, b), with a,b being integers.')
+            if (not isinstance(vertex_id, tuple)) or (len(vertex_id) != 2) or \
+                (not isinstance(vertex_id[0], int)) or (not isinstance(vertex_id[1], int)):
+                raise ValueError('In order to create the spatial components of the square lattice, the method needs' + 
+                                 'the vertices id to be tuples of the form (a, b), with a,b being integers.')
         if not hasattr(self, 'df_attributes'):
             raise ValueError("The graph object has no attribute df_attributes.")
 
@@ -264,8 +258,10 @@ class SpatialComponentsSquareLattice:
         :param attribute_coord_y: optional, string, default 'coord_y'. Name of the column of df_attributes in which to
                                   store the y coordinates.
         """
+
         coord_x = np.full(self.connections.shape[0], 0., dtype=float)
         coord_y = np.full(self.connections.shape[0], 0., dtype=float)
+        vector = np.asfarray(np.array(vector))
         rot_vector = np.array([-vector[1], vector[0]])
 
         for vertex_id, vertex_index in self.dict_cell_id_to_ind.items():
@@ -317,5 +313,8 @@ class SpatialComponentsSquareLattice:
                 vertices_current_square.append([x + u[0], y + u[1]])
             self.cell_vertices.append(vertices_current_square)
         self.cell_vertices = np.array(self.cell_vertices)
+
+    def create_surface_column(self, attribute_surface='surface'):
+        self.df_attributes['surface'] = compute_area_oriented_array_of_conv_polygons_same_nb_vert(self.cell_vertices)
             
             

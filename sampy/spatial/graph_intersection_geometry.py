@@ -76,7 +76,7 @@ class GraphIntersectionConvexPolygons:
     def __init__(self, **kwargs):
         pass
 
-    def compute_intersection(g1_poly_vertices=None, attribute_g1_poly_vertices='cell_vertices',
+    def compute_intersection(self, g1_poly_vertices=None, attribute_g1_poly_vertices='cell_vertices',
                              g2_poly_vertices=None, attribute_g2_poly_vertices='cell_vertices'):
         """
         todo

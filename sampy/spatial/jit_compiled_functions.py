@@ -164,3 +164,15 @@ def intersect_two_positively_oriented_2D_convex_polygons(vertices_poly_1, vertic
 
     return area
 
+
+@nb.njit
+def compute_area_oriented_array_of_conv_polygons_same_nb_vert(array_vertices):
+    array_area = np.zeros((array_vertices.shape[0],), dtype=float)
+    for i in range(array_vertices.shape[0]):
+        for j in range(array_vertices.shape[1]): # that's where the assumption that the number
+                                                 # of vertices is the same accross all polyg
+            next_j = (j + 1) % array_vertices.shape[1]
+            array_area[i] += array_vertices[i, j, 0] * array_vertices[i, next_j, 1] - \
+                array_vertices[i, j, 1] * array_vertices[i, next_j, 0]
+        array_area[i] /= 2.
+    return array_area

@@ -166,3 +166,16 @@ def keep_subgraph_from_array_of_bool_equi_weight(arr_keep, connections):
                 new_arr_weights[i][j] = (j + 1) / arr_nb_connections[i]
 
     return new_arr_connections, new_arr_weights
+
+
+@nb.njit
+def compute_area_oriented_array_of_conv_polygons_same_nb_vert(array_vertices):
+    array_area = np.zeros((array_vertices.shape[0],), dtype=float)
+    for i in range(array_vertices.shape[0]):
+        for j in range(array_vertices.shape[1]): # that's where the assumption that the number
+                                                 # of vertices is the same accross all polyg
+            next_j = (j + 1) % array_vertices.shape[1]
+            array_area[i] += array_vertices[i, j, 0] * array_vertices[i, next_j, 1] - \
+                array_vertices[i, j, 1] * array_vertices[i, next_j, 0]
+        array_area[i] /= 2.
+    return array_area

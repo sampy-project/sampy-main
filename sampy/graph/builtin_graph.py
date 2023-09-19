@@ -5,7 +5,8 @@ from .topology import (SquareGridWithDiagTopology,
                        OrientedHexagonalGridOnSquare)
 from .vertex_attributes import PeriodicAttributes, BaseVertexAttributes, AttributesFrom2DArraysSquareGrids
 from .from_files import SaveAndLoadSquareGrids
-from .spatial_2d import SpatialComponentsTwoDimensionalOrientedHexagons
+from .spatial_2d import (SpatialComponentsTwoDimensionalOrientedHexagons,
+                         SpatialComponentsSquareLattice)
 from ..utils.decorators import sampy_class
 from .misc import save_as_repository_include_metadata
 from .jit_compiled_functions import keep_subgraph_from_array_of_bool_equi_weight
@@ -22,7 +23,8 @@ class SquareGridWithDiag(SquareGridWithDiagTopology,
                          PeriodicAttributes,
                          AttributesFrom2DArraysSquareGrids,
                          SaveAndLoadSquareGrids,
-                         SquareGridsConvertBetween1DArrayAnd2DArrays):
+                         SquareGridsConvertBetween1DArrayAnd2DArrays,
+                         SpatialComponentsSquareLattice):
     """
     Landscape graph. Grid of squares, diagonals included.
     """
@@ -36,7 +38,8 @@ class SquareGrid(SquareGridTopology,
                  PeriodicAttributes,
                  AttributesFrom2DArraysSquareGrids,
                  SaveAndLoadSquareGrids,
-                 SquareGridsConvertBetween1DArrayAnd2DArrays):
+                 SquareGridsConvertBetween1DArrayAnd2DArrays,
+                 SpatialComponentsSquareLattice):
     """
     Landscape graph. Grid of squares, diagonals excluded.
     """

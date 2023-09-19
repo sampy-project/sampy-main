@@ -25,7 +25,7 @@ class GraphIntersectionFromCoordsAndRadius:
                                 graph_2_radius='radius'):
         """
         Compute the intersection of two 2D graphs. The intersection is computed assuming that each vertex v
-        has a disk of a given radius r_v attached to it, and the inntersection is just the intersection of 
+        has a disk of a given radius r_v attached to it, and the intersection is just the intersection of 
         the disks.
 
         :param graph_1_coord_x:
@@ -76,12 +76,19 @@ class GraphIntersectionConvexPolygons:
     def __init__(self, **kwargs):
         pass
 
-    def compute_intersection(g1_poly_vertices=None, attribute_g1_poly_vertices='cell_vertices',
-                             g2_poly_vertices=None, attribute_g2_poly_vertices='cell_vertices'):
+    def compute_intersection_same_nb_vertices(g1_poly_vertices=None, 
+                                              attribute_g1_poly_vertices='cell_vertices',
+                                              g2_poly_vertices=None, 
+                                              attribute_g2_poly_vertices='cell_vertices'):
         """
-        todo
+        This method requires the following condition to be such that :
+            for each graph g_j, there exists an integer n_j such that each polygon
+            of g_j has exactly n_j vertices. Moreove, those vertices are supposed to be
+            stored in a 3D array of shape (nb_vert_g_j, n_j, 2).
+        In essence, the main use-case of this methode is to intersect two regular lattices,
+        like a square lattice with an hexagonal lattice.
 
-        :param g1_poly_vertices:
+        :param g1_poly_vertices: 
         :param attribute_g1_poly_vertices:
         :param g2_poly_vertices:
         :param attribute_g2_poly_vertices:

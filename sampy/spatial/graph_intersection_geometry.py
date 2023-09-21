@@ -133,11 +133,13 @@ class GraphIntersectionConvexPolygons:
 
         radius = radius_graph_1 + radius_graph_2
 
-        # we compute the "area arrays"
+        # we compute the "area arrays" A_j, such that A_j[i] is the area of the i-th polygon
+        # in graph j
         areas_graph_1 = compute_area_oriented_array_of_conv_polygons_same_nb_vert(g1_poly_vertices)
         areas_graph_2 = compute_area_oriented_array_of_conv_polygons_same_nb_vert(g2_poly_vertices)
 
-        # we create the trees of each graph
+        # we create the trees of each graph. Those are used to determine the "neighborhood" of
+        # each polygon
         tree_graph_1 = cKDTree(coords_centroids_graph_1)
         tree_graph_2 = cKDTree(coords_centroids_graph_2)
 
@@ -161,3 +163,12 @@ class GraphIntersectionConvexPolygons:
                     temp_weights_g1_to_g2[i].append(area/areas_graph_1[i])
                     temp_intersect_g2_to_g1[j].append(i)
                     temp_weights_g2_to_g1[j].append(area/areas_graph_2[j])
+
+        # convert to numpy arrays
+        indexes_g1_to_g2 = []
+        connections_g1_to_g2 = []
+        weights_g1_to_g2 = []
+
+        for list_intersect, list_weights in zip(temp_intersect_g1_to_g2, temp_weights_g1_to_g2):
+            pass
+       

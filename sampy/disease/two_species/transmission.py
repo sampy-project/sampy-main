@@ -103,7 +103,7 @@ class ContactTransmissionSameGraph:
                                   self.host2.df_population['imm_' + self.disease_name])
             if condition_host2 is not None:
                 contagious_host2 = contagious_host2 & condition_host2
-                susceptible_host1 = susceptible_host1 & condition_host1
+                susceptible_host2 = susceptible_host2 & condition_host2
             count_con_host2 = transmission_conditional_count(self.host2.graph.number_vertices, pos_host2,
                                                              contagious_host2)
         else:

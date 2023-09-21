@@ -176,3 +176,14 @@ def compute_area_oriented_array_of_conv_polygons_same_nb_vert(array_vertices):
                 array_vertices[i, j, 1] * array_vertices[i, next_j, 0]
         array_area[i] /= 2.
     return array_area
+
+
+@nb.njit
+def compute_max_radius(centroids, polygon_vertices):
+    current_radius = 0.
+    for i in range(centroids.shape[0]):
+        for j in range(polygon_vertices.shape[1]):
+            new_radius = np.sqrt((centroids[i, 0] - polygon_vertices[i, j, 0]) ** 2 + (centroids[i, 1] - polygon_vertices[i, j, 1]) ** 2)
+            if new_radius > current_radius:
+                current_radius = new_radius
+    return current_radius

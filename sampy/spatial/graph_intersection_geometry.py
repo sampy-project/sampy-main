@@ -165,10 +165,31 @@ class GraphIntersectionConvexPolygons:
                     temp_weights_g2_to_g1[j].append(area/areas_graph_2[j])
 
         # convert to numpy arrays
-        indexes_g1_to_g2 = []
+        # we start with g1 -> g2
+        indexes_g1_to_g2 = [0]
         connections_g1_to_g2 = []
         weights_g1_to_g2 = []
 
         for list_intersect, list_weights in zip(temp_intersect_g1_to_g2, temp_weights_g1_to_g2):
-            pass
+            indexes_g1_to_g2.append(indexes_g1_to_g2[-1] + len(list_intersect))
+            connections_g1_to_g2.extend(list_intersect)
+            weights_g1_to_g2.extend(list_weights)
+
+        self.indexes_g1_to_g2 = np.array(indexes_g1_to_g2)
+        self.connections_g1_to_g2 = np.array(connections_g1_to_g2)
+        self.weights_g1_to_g2 = np.array(weights_g1_to_g2)
+
+        # now g2 -> g1
+        indexes_g2_to_g1 = [0]
+        connections_g2_to_g1 = []
+        weights_g2_to_g1 = []
+
+        for list_intersect, list_weights in zip(temp_intersect_g2_to_g1, temp_weights_g2_to_g1):
+            indexes_g2_to_g1.append(indexes_g2_to_g1[-1] + len(list_intersect))
+            connections_g2_to_g1.extend(list_intersect)
+            weights_g2_to_g1.extend(list_weights)
+
+        self.indexes_g2_to_g1 = np.array(indexes_g2_to_g1)
+        self.connections_g2_to_g1 = np.array(connections_g2_to_g1)
+        self.weights_g2_to_g1 = np.array(weights_g2_to_g1)
        

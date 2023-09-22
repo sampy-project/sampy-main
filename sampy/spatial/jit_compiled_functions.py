@@ -187,3 +187,10 @@ def compute_max_radius(centroids, polygon_vertices):
             if new_radius > current_radius:
                 current_radius = new_radius
     return current_radius
+
+
+@nb.njit
+def convert_1D_float_like_array(input_array, output_array, input_indexes, input_connections, input_weights):
+    for i in range(input_array.shape[0]):
+        for j in range(input_indexes[i], input_indexes[i + 1]):
+            output_array[input_connections[j]] += input_weights[j] * input_array[i]

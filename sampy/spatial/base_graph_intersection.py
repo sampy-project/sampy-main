@@ -1,4 +1,5 @@
 import numpy as np
+from .jit_compiled_functions import convert_1D_float_like_array
 
 
 class BaseGraphIntersection:
@@ -58,6 +59,66 @@ class BaseGraphIntersection:
         self.indexes_g2_to_g1 = None
         self.connections_g2_to_g1 = None
         self.weights_g2_to_g1 = None
+
+    def convert_1D_array(self, source_to_target, array_to_convert):
+        """
+        Converts a 1D array of float (or complex) arr made for one of the graph into an 
+        array made for the other graph. For instance, if arr is made for g1, then:
+            - arr.shape = (nb_vertices_g1,)
+            - arr[i] is some quantities, encoded by a float (or which can be converted
+              into a float), on the vertex i of g1
+        Then the method would return an array r_arr such that:
+            - r_arr.shape = (nb_vertices_g2,)
+            - r_arr[j] is some quantities on the vertex j of g2, obtained using the
+              intersection of g1 and g2
+
+        WARNING: integer array will be converted into float array before intersecting.
+                 This is done using the default numpy.asfarray method. Do the conversion
+                 yourself prior to using this method if you need a specific dtype
+
+        :param source_to_target: string, either 'g1_to_g2' or 'g2_to_g1'. Tells in
+                                 which direction the conversion should be done
+        :param array_to_convert: 1D array of float or complex numbers. If 
+                                 source_to_target=='g1_to_g2', then it should be of 
+                                 shape (nb_vertices_g1,). Else, it should be of 
+                                 shape (nb_vertices_g2,).
+        """
+        if str(array_to_convert.dtype).startswith('int') or str(array_to_convert.dtype).startswith('uint'):
+            array_to_convert = np.asfarray(array_to_convert)
+
+        # start the convertion
+        if source_to_target == 'g1_to_g2':
+
+            # first we check that the required attributes have been created
+            if self.indexes_g1_to_g2 is None:
+                raise AttributeError("Intersection operation not performed, attribute 'indexes_g1_to_g2' missing.")
+            if self.connections_g1_to_g2 is None:
+                raise AttributeError("Intersection operation not performed, attribute 'connections_g1_to_g2' missing.")
+            if self.weights_g1_to_g2 is None:
+                raise AttributeError("Intersection operation not performed, attribute 'weights_g1_to_g2' missing.")
+            
+            returned_array = np.zeros((self.graph_2.number_vertices,), dtype=float)
+            convert_1D_float_like_array(array_to_convert, returned_array, self.indexes_g1_to_g2, 
+                                        self.connections_g1_to_g2, self.weights_g1_to_g2)
+            return returned_array
+
+        elif source_to_target == 'g2_to_g1':
+
+            # first we check that the required attributes have been created
+            if self.indexes_g2_to_g1 is None:
+                raise AttributeError("Intersection operation not performed, attribute 'indexes_g2_to_g1' missing.")
+            if self.connections_g2_to_g1 is None:
+                raise AttributeError("Intersection operation not performed, attribute 'connections_g2_to_g1' missing.")
+            if self.weights_g2_to_g1 is None:
+                raise AttributeError("Intersection operation not performed, attribute 'weights_g2_to_g1' missing.")
+            
+            returned_array = np.zeros((self.graph_1.number_vertices,), dtype=float)
+            convert_1D_float_like_array(array_to_convert, returned_array, self.indexes_g2_to_g1, 
+                                        self.connections_g2_to_g1, self.weights_g2_to_g1)
+            return returned_array
+
+        else:
+            raise ValueError("The parameter 'source_to_target' should be either 'g1_to_g2' or 'g2_to_g1'.")
 
 
 

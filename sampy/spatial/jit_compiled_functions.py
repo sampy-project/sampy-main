@@ -120,8 +120,8 @@ def intersect_two_positively_oriented_2D_convex_polygons(vertices_poly_1, vertic
 
             list_vert_in_intersection.append(vertices_poly_1[i, :] + t * r)
 
-    # if len(list_vert_in_intersection) <= 2:
-    #     return 0.
+    if len(list_vert_in_intersection) <= 2:
+        return 0.
 
     # we get rid of the repetitions using the threshold value
     arr_keep_vertices = np.full(len(list_vert_in_intersection), True)
@@ -132,6 +132,10 @@ def intersect_two_positively_oriented_2D_convex_polygons(vertices_poly_1, vertic
                 arr_keep_vertices[j] = False
 
     vert_in_intersection = np.full((arr_keep_vertices.sum(), 2), 0.)
+
+    if vert_in_intersection.shape[0] <= 2:
+        return 0.
+
     counter = 0
     for i in range(len(list_vert_in_intersection)):
         if arr_keep_vertices[i]:
@@ -149,11 +153,12 @@ def intersect_two_positively_oriented_2D_convex_polygons(vertices_poly_1, vertic
 
     for i in range(arr_angles.shape[0]):
         translated_vert = vert_in_intersection[i] - center_inter
-        angle = np.arccos(translated_vert[0]/np.linalg.norm(translated_vert))
-        oriented_angle = np.sign(translated_vert[1]) * angle
-        arr_angles[i] = oriented_angle
+        angle = np.arctan2(translated_vert[1], translated_vert[0])
+        # oriented_angle = np.sign(translated_vert[1]) * angle
+        arr_angles[i] = angle
 
     vert_in_intersection = vert_in_intersection[np.argsort(arr_angles)]
+    # print(vert_in_intersection)
 
     area = 0.
     for i in range(vert_in_intersection.shape[0]):
@@ -161,6 +166,9 @@ def intersect_two_positively_oriented_2D_convex_polygons(vertices_poly_1, vertic
         area += vert_in_intersection[i, 0] * vert_in_intersection[next_i, 1] - \
             vert_in_intersection[i, 1] * vert_in_intersection[next_i, 0]
     area = area / 2.
+    if area < 0.:
+        print(vert_in_intersection)
+        print(area, '\n')
 
     return area
 

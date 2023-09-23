@@ -1,5 +1,5 @@
-from base_graph_intersection import BaseGraphIntersection
-from graph_intersection_geometry import GraphIntersectionConvexPolygons
+from .base_graph_intersection import BaseGraphIntersection
+from .graph_intersection_geometry import GraphIntersectionConvexPolygons
 from ..utils.decorators import sampy_class
 
 

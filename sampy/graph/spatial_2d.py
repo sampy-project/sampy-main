@@ -315,6 +315,6 @@ class SpatialComponentsSquareLattice:
         self.cell_vertices = np.array(self.cell_vertices)
 
     def create_surface_column(self, attribute_surface='surface'):
-        self.df_attributes['surface'] = compute_area_oriented_array_of_conv_polygons_same_nb_vert(self.cell_vertices)
+        self.df_attributes[attribute_surface] = compute_area_oriented_array_of_conv_polygons_same_nb_vert(self.cell_vertices)
             
             

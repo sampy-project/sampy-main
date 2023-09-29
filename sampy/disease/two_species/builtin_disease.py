@@ -97,7 +97,8 @@ class TwoSpeciesContactCustomProbTransitionPermanentImmunity(BaseTwoSpeciesDisea
 
     def simplified_transition_between_states(self, prob_death_host1, prob_death_host2,
                                              arr_infectious_period_host1, arr_prob_infectious_period_host1,
-                                             arr_infectious_period_host2, arr_prob_infectious_period_host2):
+                                             arr_infectious_period_host2, arr_prob_infectious_period_host2,
+                                             return_arr_death=False):
         """
         Takes care of the transition between all the disease states. That is, agents that are at the end of their
         infected period become contagious and agents at the end of their contagious period either die (with a
@@ -120,9 +121,27 @@ class TwoSpeciesContactCustomProbTransitionPermanentImmunity(BaseTwoSpeciesDisea
                     arr_infectious_period_host1[i] timesteps contagious.
         :param arr_infectious_period_host2: same as host1
         :param arr_prob_infectious_period_host2: same as host1
+        :param return_arr_death: optional, boolean, default False. If True, the method returns two 1D arrays of
+                                 integers giving the number of death per vertex.
+        
+        :return: Depending on the values of the parameter 'return_arr_death' the returned value will either be 
+                 None (both are False) or a dictionnary whose key-values are:
+                    - 'arr_death_disease_host1', 'arr_death_disease_host2' if return_arr_death is True, and the
+                      values are 1D arrays of integers telling how much agents died per vertex.
         """
-        self.transition_between_states('host1', 'con', 'death', proba_death=prob_death_host1)
-        self.transition_between_states('host2', 'con', 'death', proba_death=prob_death_host2)
+        dict_transition = dict()
+
+        if return_arr_death:
+            dict_transition['arr_death_disease_host1'] = self.transition_between_states('host1', 'con', 'death', 
+                                                                                        proba_death=prob_death_host1,
+                                                                                        return_transition_count=True)
+            dict_transition['arr_death_disease_host2'] = self.transition_between_states('host2', 'con', 'death', 
+                                                                                        proba_death=prob_death_host2,
+                                                                                        return_transition_count=True)
+            
+        else:
+            self.transition_between_states('host1', 'con', 'death', proba_death=prob_death_host1)
+            self.transition_between_states('host2', 'con', 'death', proba_death=prob_death_host2)
 
         if self.host1.df_population.nb_rows != 0:
             self.transition_between_states('host1', 'con', 'imm')
@@ -133,6 +152,9 @@ class TwoSpeciesContactCustomProbTransitionPermanentImmunity(BaseTwoSpeciesDisea
             self.transition_between_states('host2', 'con', 'imm')
             self.transition_between_states('host2', 'inf', 'con', arr_nb_timestep=arr_infectious_period_host2,
                                            arr_prob_nb_timestep=arr_prob_infectious_period_host2)
+            
+        if return_arr_death:
+            return dict_transition
 
     def simplified_contaminate_vertices(self, host, list_vertices, level, arr_timesteps, arr_prob_timesteps,
                                         condition=None, position_attribute='position',

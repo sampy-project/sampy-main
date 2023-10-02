@@ -25,3 +25,19 @@ def counts_to_csv(list_count_arr, graph, path_to_csv, sep=';', timesteps=None):
     df.to_csv(path_to_csv, index=False, sep=sep)
 
 
+def columns_to_csv(list_columns, list_col_names, path_to_csv, sep=';'):
+    """
+    Take a list of columns and a list of names to create a CSV.
+    Columns are assumed to be the same length, and they should be iterable
+    that Pandas can turn into a column of a Pandas.DataFrame object.
+
+    :param list_columns: list whose element are colums of the CSV. That are, iterable
+                         that pandas can cast into a Series and included in a Dataframe.
+                         Each column should have the same length.
+    :param list_col_names: list of string, name of each column. 
+    """
+    df = pd.DataFrame()
+    for col, name in zip(list_columns, list_col_names):
+        df[name] = col
+    df.to_csv(path_to_csv, index=False, sep=sep)
+    

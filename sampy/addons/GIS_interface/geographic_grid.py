@@ -1,7 +1,13 @@
-from ...graph.builtin_graph import OrientedHexagonalLattice
+from ...graph.topology import OrientedHexagonalGridOnSquare
+from ...graph.vertex_attributes import BaseVertexAttributes
+from ...graph.spatial_2d import SpatialComponentsTwoDimensionalOrientedHexagons
+from ...utils.decorators import sampy_class
 
 
-class HexGrid:
+@sampy_class
+class HexGrid(BaseVertexAttributes,
+              OrientedHexagonalGridOnSquare,
+              SpatialComponentsTwoDimensionalOrientedHexagons):
     """
     This class is a Graph object corresponding to a lattice of hexagons.
     However, it is modified compared to the native SamPy one in order to
@@ -12,7 +18,7 @@ class HexGrid:
 
     todo
     """
-    def __init__(self):
+    def __init__(self, **kwargs):
         pass
 
-    # def azimutal
+    

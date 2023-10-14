@@ -456,8 +456,8 @@ def random_walk_on_sphere_deviate_direction_from_angles(deviation_angle, arr_sel
 
 
 @nb.njit
-def random_walk_on_sphere_propose_step_gamma_law(arr_selected_agents, gamma_sample, pos_x, pos_y, pos_z, dir_x, dir_y, dir_z,
-                                       radius):
+def random_walk_on_sphere_propose_step_gamma_law(arr_selected_agents, gamma_sample, pos_x, pos_y, pos_z, dir_x, dir_y, 
+                                                dir_z, radius):
     r_pos_x = np.full(gamma_sample.shape, -1.)
     r_pos_y = np.full(gamma_sample.shape, -1.)
     r_pos_z = np.full(gamma_sample.shape, -1.)
@@ -497,8 +497,8 @@ def random_walk_on_sphere_propose_step_gamma_law(arr_selected_agents, gamma_samp
 
 
 @nb.njit
-def random_walk_on_sphere_make_step_gamma_law(arr_selected_agents, gamma_sample, pos_x, pos_y, pos_z, dir_x, dir_y,
-                                              dir_z, radius):
+def random_walk_on_sphere_make_step_gamma_law(arr_selected_agents, gamma_sample, pos_x, pos_y, 
+                                              pos_z, dir_x, dir_y, dir_z, radius):
     counter = 0
     for i in range(arr_selected_agents.shape[0]):
         if arr_selected_agents[i]:

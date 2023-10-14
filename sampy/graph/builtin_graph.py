@@ -3,7 +3,9 @@ from .topology import (SquareGridWithDiagTopology,
                        SquareGridsConvertBetween1DArrayAnd2DArrays,
                        IcosphereTopology,
                        OrientedHexagonalGridOnSquare)
-from .vertex_attributes import PeriodicAttributes, BaseVertexAttributes, AttributesFrom2DArraysSquareGrids
+from .vertex_attributes import (PeriodicAttributes, 
+                                BaseVertexAttributes, 
+                                AttributesFrom2DArraysSquareGrids)
 from .from_files import SaveAndLoadSquareGrids
 from .spatial_2d import (SpatialComponentsTwoDimensionalOrientedHexagons,
                          SpatialComponentsSquareLattice)
@@ -51,8 +53,8 @@ class SquareGrid(SquareGridTopology,
 class IcosphereGraph(BaseVertexAttributes,
                      IcosphereTopology):
     """
-    Graph of choice for the study of species whose species distribution is big enough so that the shape of the earth
-    has to be considered.
+    Graph of choice for the study of species whose species distribution is big enough so that the 
+    shape of the earth has to be considered.
     """
     def __init__(self, **kwargs):
         pass
@@ -62,8 +64,8 @@ class IcosphereGraph(BaseVertexAttributes,
         Save the graph structure in a folder using .npy files. The end result is not human-readable.
 
         :param path_to_folder: Path to the folder. If it does not exist, the folder will be created.
-        :param erase_folder: optional, boolean, default True. If True, any folder already existing at 'path_to_folder'
-                             will be deleted.
+        :param erase_folder: optional, boolean, default True. If True, any folder already existing 
+                             at 'path_to_folder' will be deleted.
         """
 
         metadata_json = {'nb_sub': self.nb_sub,
@@ -79,7 +81,8 @@ class IcosphereGraph(BaseVertexAttributes,
         Load the graph structure using a folder saved using the save method.
 
         :param path_to_folder: path to a folder where a graph icosphere is saved.
-        :param strict_check: optional, boolean, default True. If true, check that the loaded graph as type 'icosphere'.
+        :param strict_check: optional, boolean, default True. If true, check that the loaded graph 
+                             as type 'icosphere'.
         :return: An instanciated IcosphereGraph object
         """
         if os.path.exists(path_to_folder):
@@ -114,9 +117,11 @@ class IcosphereGraph(BaseVertexAttributes,
 
     def keep_subgraph(self, array_vertices_to_keep):
         """
-        Keep the specified vertices and keep the rest. Both attributes, connections and weights are updated accordingly.
+        Keep the specified vertices and keep the rest. Both attributes, connections and weights are 
+        updated accordingly.
 
-        :param array_vertices_to_keep: 1d array of bool. array[i] is true if the vertex of index i should be kept.
+        :param array_vertices_to_keep: 1d array of bool. array[i] is true if the vertex of index i 
+                                       should be kept.
         """
         new_connections, new_weights = keep_subgraph_from_array_of_bool_equi_weight(array_vertices_to_keep,
                                                                                     self.connections)

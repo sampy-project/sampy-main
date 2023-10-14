@@ -18,9 +18,10 @@ from .jit_compiled_functions import (random_walk_on_sphere_set_position_based_on
 
 class SphericalRandomWalk:
     """
-    This class give the ability for the agent to perform random walks on a sphere. The directions are preserved between
-    consecutive steps by using parallel transport. The associated technical background can be found in the publication
-    {in-preparation} by F. Viard, A. Allibert and P. Leighton.
+    This class give the ability for the agent to perform random walks on a sphere. The directions 
+    are preserved between consecutive steps by using parallel transport. The associated technical 
+    background can be found in the publication {in-preparation} by F. Viard, A. Allibert and 
+    P. Leighton.
     """
     def __init__(self, px=0., py=0., pz=0., dx=0., dy=0., dz=0., **kwargs):
         self.df_population['is_on_random_walk'] = False
@@ -41,12 +42,13 @@ class SphericalRandomWalk:
 
     def set_dtype_of_positions_and_directions(self, targeted_dtype='float64'):
         """
-        The computations needed for spherical random walks, as they are now, are really sensitive to rounding errors.
-        Therefore, it may be needed to increase the precision of columns px, py, pz, dx, dy and dz to float64. This
-        method is a shortcut for doing it on all 6 columns. This method won't have any effect if there is no agents.
+        The computations needed for spherical random walks, as they are now, are really sensitive to
+        rounding errors. Therefore, it may be needed to increase the precision of columns px, py, 
+        pz, dx, dy and dz to float64. This method is a shortcut for doing it on all 6 columns. 
+        This method won't have any effect if there is no agents.
 
-        :param targeted_dtype: optional, string, default 'float64'. The new datatype for the position and direction
-                               columns.
+        :param targeted_dtype: optional, string, default 'float64'. The new datatype for the 
+                               position and direction columns.
 
         :return: True if the columns were not empty and the assignement succeded, False otherwise.
         """
@@ -68,15 +70,20 @@ class SphericalRandomWalk:
                                     graph_coord_y_attribute='coord_y',
                                     graph_coord_z_attribute='coord_z'):
         """
-        Set the position of the selected agents using coordinates of the graph vertex the agent is currently on.
+        Set the position of the selected agents using coordinates of the graph vertex the agent is 
+        currently on.
 
-        :param arr_selected_agent: 1D array of bool, saying which agents should have their coordinates updated according
-                                   to their position on the graph.
-        :param agent_position_attribute: optional, string, default 'position'. Name of the attribute position column in
-                                         the df_population dataframe in the agent class.
-        :param graph_coord_x_attribute: optional, string, default 'coord_x'. X coordinate of the graph vertices.
-        :param graph_coord_y_attribute: optional, string, default 'coord_y'. Y coordinate of the graph vertices.
-        :param graph_coord_z_attribute: optional, string, default 'coord_z'. Z coordinate of the graph vertices.
+        :param arr_selected_agent: 1D array of bool, saying which agents should have their 
+                                   coordinates updated according to their position on the graph.
+        :param agent_position_attribute: optional, string, default 'position'. Name of the attribute 
+                                         position column in the df_population dataframe in the agent 
+                                         class.
+        :param graph_coord_x_attribute: optional, string, default 'coord_x'. X coordinate of the 
+                                        graph vertices.
+        :param graph_coord_y_attribute: optional, string, default 'coord_y'. Y coordinate of the 
+                                        graph vertices.
+        :param graph_coord_z_attribute: optional, string, default 'coord_z'. Z coordinate of the 
+                                        graph vertices.
         """
         random_walk_on_sphere_set_position_based_on_graph(arr_selected_agent,
                                                           self.df_population[agent_position_attribute],
@@ -89,7 +96,8 @@ class SphericalRandomWalk:
 
     def start_random_walk_uniform_prob(self, prob, condition=None, return_arr_new_walker=True):
         """
-        Perform a uniform test for each agent. Successful agents have their attribute 'is_on_random_walk' set to true.
+        Perform a uniform test for each agent. Successful agents have their attribute 
+        'is_on_random_walk' set to true.
 
         :param prob: float, probability for all agent to start a random walk
         :param condition: optional, 1D array of bool, default None.
@@ -107,17 +115,17 @@ class SphericalRandomWalk:
             arr_start_rw = np.random.uniform(0, 1, (condition.sum(),)) <= prob
             if return_arr_new_walker:
                 return conditional_random_walk_on_sphere_start_random_walk_uniform_prob_return_new_walkers(arr_start_rw,
-                                                                                                           self.df_population['is_on_random_walk'],
-                                                                                                           condition)
+                                                                                self.df_population['is_on_random_walk'],
+                                                                                condition)
             conditional_random_walk_on_sphere_start_random_walk_uniform_prob(arr_start_rw,
                                                                              self.df_population['is_on_random_walk'],
                                                                              condition)
 
     def set_direction_to_north(self, arr_selected_agents):
         """
-        Set the directions of the selected agents in the direction of the north pole (coordinates X and Y are 0.).
-        Agents located at the north or south pole have their initial direction set to (1., 0., 0.). Note that the
-        direction is a vector of norm 1.
+        Set the directions of the selected agents in the direction of the north pole (coordinates X 
+        and Y are 0.). Agents located at the north or south pole have their initial direction set to
+        (1., 0., 0.). Note that the direction is always a vector of norm 1.
 
         :param arr_selected_agents: 1D array of bool
         """
@@ -131,12 +139,13 @@ class SphericalRandomWalk:
 
     def set_direction_von_mises(self, arr_selected_agents, kappa):
         """
-        Set the direction of the selected agents by deviating their current direction by an angle given by von mises
-        distribution.
+        Set the direction of the selected agents by deviating their current direction by an angle 
+        given by von mises distribution.
 
-        :param arr_selected_agents: 1D array of bool saying which agent should have their direction changed
-        :param kappa: kappa parameter for the von mises distribution. The hiher the value of Kappa, the smaller the
-                      deviation.
+        :param arr_selected_agents: 1D array of bool saying which agent should have their direction 
+                                    changed
+        :param kappa: kappa parameter for the von mises distribution. The hiher the value of Kappa, 
+                      the smaller the deviation.
         """
         deviation_angles = np.random.vonmises(0, kappa, (arr_selected_agents.sum(),))
         random_walk_on_sphere_deviate_direction_from_angles(deviation_angles, arr_selected_agents,
@@ -151,22 +160,26 @@ class SphericalRandomWalk:
                                   list_proximity_classes=None, mode_proximity_test='AND',
                                   return_agents_failed_making_step=False):
         """
-        The selected agents make a step, following their current direction with a step length given by a
-        Gamma distribution. The user can provide a list of proximity class to test if the step fails or succeed.
+        The selected agents make a step, following their current direction with a step length given 
+        by a Gamma distribution. The user can provide a list of proximity class to test if the step 
+        fails or succeed.
 
         :param arr_selected_agents: 1D array of bool saying which agent should make a new step
         :param k: shape parameter gamma law
         :param theta: scale parameter gamma law
         :param radius: float, radius of the sphere on which the agents live
-        :param list_proximity_classes: optional, list of proximity class, default None. If a list of proximity class is
-                                       provided, the method will check that each step is valid according to those
-                                       proximity class. If the list has more than one element, this test is done using
-                                       the methodology defined by the kwarg mode_proximity_test.
-        :param mode_proximity_test: optional, string, default 'AND'. Only two accepted values, that are 'AND' and 'OR'.
-                                    If 'AND', a step is valid if and only if all the proximity classes validate it.
-                                    IF 'OR', a step is valid if at least one of the proximity classes validate it.
-        :param return_agents_failed_making_step: optional, boolean, default False. If True, returns a 1D array of bool
-                                                 Saying which agent failed their step.
+        :param list_proximity_classes: optional, list of proximity class, default None. If a list of
+                                       proximity class is provided, the method will check that each 
+                                       step is valid according to those proximity class. If the list 
+                                       has more than one element, this test is done using the 
+                                       methodology defined by the kwarg mode_proximity_test.
+        :param mode_proximity_test: optional, string, default 'AND'. Only two accepted values, that 
+                                    are 'AND' and 'OR'. If 'AND', a step is valid if and only if all
+                                    the proximity classes validate it. IF 'OR', a step is valid if 
+                                    at least one of the proximity classes validate it.
+        :param return_agents_failed_making_step: optional, boolean, default False. If True, returns 
+                                                 a 1D array of bool Saying which agent failed their 
+                                                 step.
                                                  WARNING: in the resulting array res, res[i] is True if and only if
                                                           the agent at line i had the opportunity to make a step but
                                                           failed to do so. If res[i] is False, then it means the agent

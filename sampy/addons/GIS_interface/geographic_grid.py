@@ -21,6 +21,7 @@ class HexGrid(BaseVertexAttributes,
     todo
     """
     def __init__(self, **kwargs):
+    def __init__(self, **kwargs):
         pass
 
     @classmethod

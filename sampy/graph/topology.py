@@ -173,13 +173,15 @@ class IcosphereTopology(BaseTopology):
             raise ValueError("kwarg nb_sub missing")
         self.nb_sub = nb_sub
         self.radius = float(radius)
-        delattr(self, 'dict_cell_id_to_ind') # no id for such graph. May change in the future.
 
         icosahedron = SubdividedIcosahedron(nb_sub)
         self.connections = np.copy(icosahedron.connections)
         self.weights = np.copy(icosahedron.weights)
         self.arr_coord = np.copy(icosahedron.arr_coord)
         del icosahedron
+
+        # in the case of icoSphere Graph, vertices don't have a 'human readable' id (yet)
+        self.dict_cell_id_to_ind = {i:i for i in range(self.number_vertices)}
 
         self.type = 'IcoSphere'
         self.three_d_coord_created = False

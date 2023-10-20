@@ -173,6 +173,7 @@ class IcosphereTopology(BaseTopology):
             raise ValueError("kwarg nb_sub missing")
         self.nb_sub = nb_sub
         self.radius = float(radius)
+        delattr(self, 'dict_cell_id_to_ind') # no id for such graph. May change in the future.
 
         icosahedron = SubdividedIcosahedron(nb_sub)
         self.connections = np.copy(icosahedron.connections)

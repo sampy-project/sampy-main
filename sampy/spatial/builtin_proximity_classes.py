@@ -2,6 +2,7 @@ from .proximity_3d import (BaseProximity3dFromArrays,
                            BaseProximity3dFromLatLonGrid,
                            Proximity3dBasicSpatialQueries)
 from ..utils.decorators import sampy_class
+import numpy as np
 
 
 @sampy_class
@@ -33,6 +34,24 @@ class Proximity3DFromLatLonGrid(BaseProximity3dFromLatLonGrid,
     def __init__(self, grid_lats=None, grid_lons=None, sphere_radius=None, arr_radius_point=None, 
                  allowed_points=None, **kwargs):
         pass
+    
+    def get_closest_points_from_lat_lon(self, arr_target_lat, arr_target_lon, nb_points=1):
+        """
+        Given a series of target-point whose coordinates are given as three 1 dimensional arrays, this method gives the
+        index of the closest point (and the distance) in the proximity class to each of the target-points.
+
+        :param arr_target_lat: 1d array of float, lat coordinate of target point.
+        :param arr_target_lon: 1d array of float, lon coordinate of target point.
+        :param nb_points: optional, integer, default 1. Number of closest points to the target.
+
+        :return: couple of arrays (distance, indices), the second one giving the index of the closest point and the
+            first one the distance to this point
+        """
+        arr_target_x = self.sphere_radius * np.cos(np.radians(arr_target_lat)) * np.cos(np.radians(arr_target_lon))
+        arr_target_y = self.sphere_radius * np.cos(np.radians(arr_target_lat)) * np.sin(np.radians(arr_target_lon))
+        arr_target_z = self.sphere_radius * np.sin(np.radians(arr_target_lat))
+        stacked_arr = np.column_stack([arr_target_x, arr_target_y, arr_target_z])
+        return self.kdtree.query(stacked_arr, k=nb_points)
     
 
 @sampy_class

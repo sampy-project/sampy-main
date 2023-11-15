@@ -69,6 +69,8 @@ class BaseProximity3dFromLatLonGrid:
             raise ValueError("No value for grid_lons kwarg has been given.")
         if sphere_radius is None:
             raise ValueError("No value for radius kwarg has been given.")
+        
+        self.sphere_radius = sphere_radius
 
         # start creating the proximity 3d thingy
         grid_coord_x = sphere_radius * np.cos(np.radians(grid_lats)) * np.cos(np.radians(grid_lons))

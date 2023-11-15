@@ -2,6 +2,7 @@ from .base import BaseAgingAgent
 from .mortality import NaturalMortalityOrmMethodology, OffspringDependantOnParents
 from .reproduction import FindMateMonogamous, FindMatePolygamous, OffspringCreationWithCustomProb
 from .movement import TerritorialMovementWithoutResistance
+from .random_walk import SphericalRandomWalk
 from ..utils.decorators import sampy_class
 
 
@@ -34,7 +35,24 @@ class BasicMammalPolygamous(BaseAgingAgent,
         pass
 
 
+@sampy_class
+class BasicMammalWithSCRW(BaseAgingAgent,
+                          NaturalMortalityOrmMethodology,
+                          OffspringDependantOnParents,
+                          FindMateMonogamous,
+                          OffspringCreationWithCustomProb,
+                          TerritorialMovementWithoutResistance,
+                          SphericalRandomWalk):
+    """
+    Agent that represents a basic territorial mammal able to perform spherical correlated random walk. 
+    This agent is Monogamous.
 
+    IMPORTANT: The theory behind SCRW is given in a paper in preparation. If it is not out yet, send
+               a mail to francois.viard@umontreal.ca to get the current draft of the paper (all
+               the maths are already included in the draft).
+    """
+    def __init__(self, **kwargs):
+        pass
 
 
 

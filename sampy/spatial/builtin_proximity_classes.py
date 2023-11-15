@@ -11,7 +11,7 @@ class Proximity3DFromLatLonGrid(BaseProximity3dFromLatLonGrid,
     A proximity class is basically a wrapper around a cKDTree object. That is, a data structure
     optimized for some spatial queries. In SamPy, Proximity class main purpose is to find the 
     position of an agent with respect to some set of points. Those class also allow to define
-    "allowed point" and, thus know if an agent is on an allowed position or not.
+    "allowed point" and, thus to know if an agent is on an allowed position or not.
 
     Here, the set of points consists in a grid on the earth defined with lat-lon coordinates.
 
@@ -31,5 +31,28 @@ class Proximity3DFromLatLonGrid(BaseProximity3dFromLatLonGrid,
     :param allowed_points: optional, 2D array of bool, default None.
     """
     def __init__(self, grid_lats=None, grid_lons=None, sphere_radius=None, arr_radius_point=None, 
+                 allowed_points=None, **kwargs):
+        pass
+    
+
+@sampy_class
+class Proximity3DFromArrays(BaseProximity3dFromArrays,
+                            Proximity3dBasicSpatialQueries):
+    """
+    A proximity class is basically a wrapper around a cKDTree object. That is, a data structure
+    optimized for some spatial queries. In SamPy, Proximity class main purpose is to find the 
+    position of an agent with respect to some set of points. Those class also allow to define
+    "allowed point" and, thus to know if an agent is on an allowed position or not.
+
+    Here, the set of points is given explicitely by their 3D coordinates.
+
+    :param arr_radius_point: mandatory kwarg, 1d array of float, default None. Gives the "radius" 
+                             around each point of the proximity object. 
+    :param coord_x: mandatory kwarg, 1D array of floats.
+    :param coord_y: mandatory kwarg, 1D array of floats.
+    :param coord_z: mandatory kwarg, 1D array of floats.
+    :param allowed_points: optional, 2D array of bool, default None.
+    """
+    def __init__(self, arr_radius_point=None, coord_x=None, coord_y=None, coord_z=None, 
                  allowed_points=None, **kwargs):
         pass

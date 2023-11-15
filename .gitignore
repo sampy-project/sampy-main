@@ -5,3 +5,5 @@ example_data_climatic.nc
 test_hex_grid_visua.py
 script_video.py
 test_get_all_objects.py
+test_PAN_rw.py
+test_chap3_without_genetic.py

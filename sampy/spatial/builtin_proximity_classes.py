@@ -1,4 +1,5 @@
 from .proximity_3d import (BaseProximity3dFromArrays, 
+                           BaseProximity3dFromGraph,
                            BaseProximity3dFromLatLonGrid,
                            Proximity3dBasicSpatialQueries)
 from ..utils.decorators import sampy_class
@@ -74,4 +75,30 @@ class Proximity3DFromArrays(BaseProximity3dFromArrays,
     """
     def __init__(self, arr_radius_point=None, coord_x=None, coord_y=None, coord_z=None, 
                  allowed_points=None, **kwargs):
+        pass
+
+
+@sampy_class
+class Proximity3DFromGraph(BaseProximity3dFromGraph,
+                           Proximity3dBasicSpatialQueries):
+    """
+    A proximity class is basically a wrapper around a cKDTree object. That is, a data structure
+    optimized for some spatial queries. In SamPy, Proximity class main purpose is to find the 
+    position of an agent with respect to some set of points. Those class also allow to define
+    "allowed point" and, thus to know if an agent is on an allowed position or not.
+
+    Here, the set of points is given by a graph whose vertices have 3D coordinates (stored as
+    attributes) and radiuses (also stored as attributes). This implies that the indiced 
+    returned by this class when a spacial query is performed are actualy vertices indices.
+
+    :param graph: mandatory kwarg, graph object.
+    :param radius_attribute: optional, string, default 'radius_each_cell'
+    :param coord_x_attribute: optional, string, default 'coord_x'
+    :param coord_y_attribute: optional, string, default 'coord_y'
+    :param coord_z_attribute: optional, string, default 'coord_z'
+    :param allowed_points: optional, 1D array of bool, default None.
+    """
+    def __init__(self, graph=None, radius_attribute='radius_each_cell', coord_x_attribute='coord_x', 
+                 coord_y_attribute='coord_y', coord_z_attribute='coord_z', allowed_points=None, 
+                 **kwargs):
         pass

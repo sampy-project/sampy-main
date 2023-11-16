@@ -565,6 +565,30 @@ def random_walk_on_sphere_validate_step_return_fail(arr_selected_agent, arr_succ
 
 
 @nb.njit
+def random_walk_on_sphere_exit_random_walk_according_to_proximity_class(arr_sucess, arr_position, arr_selected_agents,
+                                                                        arr_pos_attribute, arr_walk_status):
+    counter = 0
+    for i in range(arr_selected_agents.shape[0]):
+        if arr_selected_agents[i]:
+            if arr_sucess[counter]:
+                arr_pos_attribute[i] = arr_position[counter]
+                arr_walk_status[i] = False
+            counter += 1
+
+
+@nb.njit
+def random_walk_on_sphere_exit_random_walk_according_to_proximity_class_no_status_update(arr_sucess, arr_position, 
+                                                                                         arr_selected_agents,
+                                                                                         arr_pos_attribute):
+    counter = 0
+    for i in range(arr_selected_agents.shape[0]):
+        if arr_selected_agents[i]:
+            if arr_sucess[counter]:
+                arr_pos_attribute[i] = arr_position[counter]
+            counter += 1
+
+
+@nb.njit
 def _temp_random_walk_on_sphere_exit_random_walk_based_on_k(arr_selected_agents, rand, prob, alpha, arr_pos, arr_k,
                                                             arr_pop):
     rv = np.full(arr_selected_agents.shape, False, dtype=np.bool_)

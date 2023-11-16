@@ -132,24 +132,63 @@ class BaseProximity3dFromLatLonGrid:
         self.allowed_points = arr_new_allowed_point.flatten()
 
 
+class BaseProximity3dFromGraph:
+    """
+    Base class for constructing 3d-proximity object from a graph. The graph is assumed to have its vertices
+    3D coordinates stored as attributes, as well as their radiuses. 
+
+    :param graph: mandatory kwarg, graph object.
+    :param radius_attribute: optional, string, default 'radius_each_cell'
+    :param coord_x_attribute: optional, string, default 'coord_x'
+    :param coord_y_attribute: optional, string, default 'coord_y'
+    :param coord_z_attribute: optional, string, default 'coord_z'
+    :param allowed_points: optional, 1D array of bool, default None.
+    """
+    def __init__(self, graph=None, radius_attribute='radius_each_cell', coord_x_attribute='coord_x', 
+                 coord_y_attribute='coord_y', coord_z_attribute='coord_z', allowed_points=None, **kwargs):
+        
+        if graph is None:
+            raise ValueError('Mandatory kwarg graph not provided for Proximity3D class from graph.')
+
+        self.arr_radius_point = np.copy(graph.df_attributes[radius_attribute])
+
+        self.coord_x = np.copy(graph.df_attributes[coord_x_attribute])
+        self.coord_y = np.copy(graph.df_attributes[coord_y_attribute])
+        self.coord_z = np.copy(graph.df_attributes[coord_z_attribute])
+
+        stacked_arr = np.column_stack([self.coord_x, self.coord_y, self.coord_z])
+        self.kdtree = cKDTree(stacked_arr)
+
+        self.allowed_points = allowed_points
+
+    def update_allowed_points(self, arr_new_allowed_point):
+        """
+        Update the array of allowed points.
+
+        :param arr_new_allowed_point: 1D array of bool, telling which point is allowed.
+        """
+        self.allowed_points = arr_new_allowed_point
+
+
 class Proximity3dBasicSpatialQueries:
     def __init__(self, **kwargs):
         pass
 
-    def get_closest_point(self, arr_target_x, arr_target_y, arr_target_z):
+    def get_closest_point(self, arr_target_x, arr_target_y, arr_target_z, nb_points=1):
         """
         Given a series of target-point whose coordinates are given as three 1 dimensional arrays, this method gives the
-        index of the closest point (and the distance) in the proximity class to each of the target-points.
+        index of the closest point(s) (and the distance(s)) in the proximity class to each of the target-points.
 
         :param arr_target_x: 1d array of float, x coordinate of target point.
         :param arr_target_y: 1d array of float, y coordinate of target point.
         :param arr_target_z: 1d array of float, z coordinate of target point.
+        :param nb_points: optional, integer, default 1. Number of point to retrieve for each target.
 
         :return: couple of arrays (distance, indices), the second one giving the index of the closest point and the
             first one the distance to this point
         """
         stacked_arr = np.column_stack([arr_target_x, arr_target_y, arr_target_z])
-        return self.kdtree.query(stacked_arr, k=1)
+        return self.kdtree.query(stacked_arr, k=nb_points)
 
     def is_pos_allowed(self, pos_x, pos_y, pos_z, distances=None, indices=None):
         """

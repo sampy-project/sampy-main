@@ -13,7 +13,9 @@ from .jit_compiled_functions import (random_walk_on_sphere_set_position_based_on
                                      random_walk_on_sphere_make_step_gamma_law,
                                      random_walk_on_sphere_validate_step,
                                      random_walk_on_sphere_validate_step_return_fail,
-                                     _temp_random_walk_on_sphere_exit_random_walk_based_on_k)
+                                     _temp_random_walk_on_sphere_exit_random_walk_based_on_k,
+                                     random_walk_on_sphere_exit_random_walk_according_to_proximity_class,
+                                     random_walk_on_sphere_exit_random_walk_according_to_proximity_class_no_status_update)
 
 
 class SphericalRandomWalk:
@@ -247,6 +249,44 @@ class SphericalRandomWalk:
                                                       self.df_population['dy'],
                                                       self.df_population['dz'],
                                                       radius)
+
+    def exit_random_walk_according_to_proximity_class(self, arr_selected_agents, proximity_class_from_graph, 
+                                                      position_attribute='position', extra_position_attributes=None,
+                                                      return_agents_that_failed=False):
+        """
+        This method ends the movement of the selected agents with respect to a proximity class linked to a graph
+        object. 
+
+        :param arr_selected_agents: 1D array of bool telling which agent are trying to exit random walk.
+        :param proximity_class_from_graph: proximity class. Should be linked to the graph on which the agents
+                                           try to settle.
+        :param position_attribute: optional, string, default position. Position attribute to use.
+        :param extra_position_attributes: optional, list of string, default None. If needed, this argument can
+                                          be used to update extra position attributes.
+        :param return_agents_that_failed: optional, boolean, default False. If True, the method returns a 1D
+                                          array of bool telling which agents failed to end their walk.
+        """
+        coord_x = self.df_attributes['px'][arr_selected_agents]
+        coord_y = self.df_attributes['py'][arr_selected_agents]
+        coord_z = self.df_attributes['pz'][arr_selected_agents]
+
+        distances, indices = proximity_class_from_graph.get_closest_point(coord_x, coord_y, coord_z)
+        arr_success = proximity_class_from_graph.is_pos_allowed(coord_x, coord_y, coord_z,
+                                                                distances=distances, indices=indices)
+
+        if extra_position_attributes is not None:
+            for pos_attribute in extra_position_attributes:
+                random_walk_on_sphere_exit_random_walk_according_to_proximity_class_no_status_update(arr_success, indices,
+                                                                                arr_selected_agents, 
+                                                                                self.df_attributes[pos_attribute])
+
+        if return_agents_that_failed:
+            pass
+        else:
+            random_walk_on_sphere_exit_random_walk_according_to_proximity_class(arr_success, indices,
+                                                                                arr_selected_agents, 
+                                                                                self.df_attributes[position_attribute],
+                                                                                self.df_attributes['is_on_random_walk'])
 
 
 # class RandomWalkOnSphere:

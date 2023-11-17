@@ -35,13 +35,13 @@ class SphericalRandomWalk:
         self.df_population['dy'] = dy
         self.df_population['dz'] = dz
 
-        self.dict_default_values['is_on_random_walk'] = False
-        self.dict_default_values['px'] = px
-        self.dict_default_values['py'] = py
-        self.dict_default_values['pz'] = pz
-        self.dict_default_values['dx'] = dx
-        self.dict_default_values['dy'] = dy
-        self.dict_default_values['dz'] = dz
+        self.dict_default_val['is_on_random_walk'] = False
+        self.dict_default_val['px'] = px
+        self.dict_default_val['py'] = py
+        self.dict_default_val['pz'] = pz
+        self.dict_default_val['dx'] = dx
+        self.dict_default_val['dy'] = dy
+        self.dict_default_val['dz'] = dz
 
     def set_dtype_of_positions_and_directions(self, targeted_dtype='float64'):
         """
@@ -267,9 +267,9 @@ class SphericalRandomWalk:
         :param return_agents_that_failed: optional, boolean, default False. If True, the method returns a 1D
                                           array of bool telling which agents failed to end their walk.
         """
-        coord_x = self.df_attributes['px'][arr_selected_agents]
-        coord_y = self.df_attributes['py'][arr_selected_agents]
-        coord_z = self.df_attributes['pz'][arr_selected_agents]
+        coord_x = self.df_population['px'][arr_selected_agents]
+        coord_y = self.df_population['py'][arr_selected_agents]
+        coord_z = self.df_population['pz'][arr_selected_agents]
 
         distances, indices = proximity_class_from_graph.get_closest_point(coord_x, coord_y, coord_z)
         arr_success = proximity_class_from_graph.is_pos_allowed(coord_x, coord_y, coord_z,
@@ -279,18 +279,18 @@ class SphericalRandomWalk:
             for pos_attribute in extra_position_attributes:
                 random_walk_on_sphere_exit_random_walk_according_to_proximity_class_no_status_update(arr_success, indices,
                                                                                 arr_selected_agents, 
-                                                                                self.df_attributes[pos_attribute])
+                                                                                self.df_population[pos_attribute])
 
         if return_agents_that_failed:
             return random_walk_on_sphere_exit_random_walk_according_to_proximity_class_return_fail(arr_success, indices,
                                                                                 arr_selected_agents, 
-                                                                                self.df_attributes[position_attribute],
-                                                                                self.df_attributes['is_on_random_walk'])
+                                                                                self.df_population[position_attribute],
+                                                                                self.df_population['is_on_random_walk'])
         else:
             random_walk_on_sphere_exit_random_walk_according_to_proximity_class(arr_success, indices,
                                                                                 arr_selected_agents, 
-                                                                                self.df_attributes[position_attribute],
-                                                                                self.df_attributes['is_on_random_walk'])
+                                                                                self.df_population[position_attribute],
+                                                                                self.df_population['is_on_random_walk'])
 
 
 # class RandomWalkOnSphere:

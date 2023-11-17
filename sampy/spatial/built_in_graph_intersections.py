@@ -46,6 +46,8 @@ class Intersection2DGraphsConvexPolygonalCells(BaseGraphIntersection,
            and to be stored in a 3D arrays of shape 
                 (nb_vert_graph_j, nb_edges_poly_graph_j, 2).
            If those 
+
+           TO BE FINISHED
     """
     def __init__(self, **kwargs):
         pass

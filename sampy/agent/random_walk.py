@@ -15,7 +15,8 @@ from .jit_compiled_functions import (random_walk_on_sphere_set_position_based_on
                                      random_walk_on_sphere_validate_step_return_fail,
                                      _temp_random_walk_on_sphere_exit_random_walk_based_on_k,
                                      random_walk_on_sphere_exit_random_walk_according_to_proximity_class,
-                                     random_walk_on_sphere_exit_random_walk_according_to_proximity_class_no_status_update)
+                                     random_walk_on_sphere_exit_random_walk_according_to_proximity_class_no_status_update,
+                                     random_walk_on_sphere_exit_random_walk_according_to_proximity_class_return_fail)
 
 
 class SphericalRandomWalk:
@@ -281,7 +282,10 @@ class SphericalRandomWalk:
                                                                                 self.df_attributes[pos_attribute])
 
         if return_agents_that_failed:
-            pass
+            return random_walk_on_sphere_exit_random_walk_according_to_proximity_class_return_fail(arr_success, indices,
+                                                                                arr_selected_agents, 
+                                                                                self.df_attributes[position_attribute],
+                                                                                self.df_attributes['is_on_random_walk'])
         else:
             random_walk_on_sphere_exit_random_walk_according_to_proximity_class(arr_success, indices,
                                                                                 arr_selected_agents, 

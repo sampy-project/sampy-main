@@ -2,7 +2,9 @@ import numpy as np
 from .jit_compiled_functions import (reproduction_find_random_mate_on_position,
                                      reproduction_find_random_mate_on_position_condition,
                                      reproduction_find_random_mate_on_position_polygamous,
-                                     reproduction_find_random_mate_on_position_polygamous_condition)
+                                     reproduction_find_random_mate_on_position_polygamous_condition,
+                                     reproduction_with_marker_find_random_mate_on_position,
+                                     reproduction_with_markers_find_random_mate_on_position_condition)
 from ..pandas_xs.pandas_xs import DataFrameXS
 
 from .. utils.errors_shortcut import (check_input_is_permutation,
@@ -136,7 +138,7 @@ class FindMateMonogamous:
         :return: 1D array of bool telling which agents are males.
         """
         return self.df_population['gender'] == 0
-
+    
 
 class FindMatePolygamous:
     """
@@ -415,3 +417,158 @@ class OffspringCreationWithCustomProb:
         # concatenate the two dataframe
         self.df_population.concat(df_children)
 
+
+class ReproductionMonogamousWithMarker:
+    """
+    This class provides methods for a monogamous agent to find mates and reproduce. It also includes
+    methods to add genetic markers to the agents. 
+
+    IMPORTANT: this may not be the best place to create the genes data structures. Moreover, this
+               design does not allow to create the markers at the same time as the population.
+               That is, markers have to be created after by using a method provided by this class.
+               This may be moved to a new class of agents specifically built for that purpose.
+    """
+    def __init__(self, **kwargs):
+        if not hasattr(self, 'df_population'):
+            self.df_population = DataFrameXS()
+        self.df_population['mom_id'] = None
+        self.df_population['dad_id'] = None
+        self.df_population['gender'] = None
+        self.df_population['is_pregnant'] = None
+        self.df_population['current_mate'] = None
+
+        if not hasattr(self, 'dict_default_val'):
+            self.dict_default_val = {}
+        self.dict_default_val['mom_id'] = -1
+        self.dict_default_val['dad_id'] = -1
+        self.dict_default_val['gender'] = 1
+        self.dict_default_val['is_pregnant'] = False
+        self.dict_default_val['current_mate'] = -1
+
+        # we create
+        self.dict_fathers_genomes = None
+        self.list_markers_name = []
+        self.list_nb_variants_per_marker = []
+
+    def _sampy_debug_find_random_mate_on_position(self,
+                                                  prob_get_pregnant,
+                                                  shuffle=True,
+                                                  permutation=None,
+                                                  condition=None,
+                                                  id_attribute='col_id',
+                                                  position_attribute='position',
+                                                  gender_attribute='gender',
+                                                  mate_attribute='current_mate',
+                                                  pregnancy_attribute='is_pregnant'):
+        if self.df_population.nb_rows == 0:
+            return
+
+        if permutation is not None:
+            check_input_is_permutation(permutation, 'permutation', self.df_population.nb_rows)
+
+        if condition is not None:
+            check_input_array(condition, 'condition', 'bool', shape=(self.df_population.nb_rows,))
+
+        check_col_exists_good_type(self.df_population, position_attribute, 'position_attribute',
+                                   prefix_dtype='int', reject_none=True)
+        check_col_exists_good_type(self.df_population, mate_attribute, 'mate_attribute',
+                                   prefix_dtype='int', reject_none=True)
+        check_col_exists_good_type(self.df_population, pregnancy_attribute, 'pregnancy_attribute',
+                                   prefix_dtype='bool', reject_none=True)
+
+        check_if_gender_array(self.df_population[gender_attribute])
+
+    def find_random_mate_on_position(self,
+                                     prob_get_pregnant,
+                                     shuffle=True,
+                                     permutation=None,
+                                     condition=None,
+                                     id_attribute='col_id',
+                                     position_attribute='position',
+                                     gender_attribute='gender',
+                                     mate_attribute='current_mate',
+                                     pregnancy_attribute='is_pregnant'):
+        """
+        Find a mate on the current position of the agent. This mate is randomly picked. By default, the attribute used
+        as the position if 'position', but the user may want to use 'territory' instead. For that purpose, the key-word
+        argument 'position_attribute' can be used.
+
+        :param prob_get_pregnant: float between 0 and 1. Probability that after mating the female will get pregnant.
+        :param shuffle: optional, boolean, default True. By default, in this method the random choice of a mate is done
+                        by shuffling the DataFrameXS 'df_population'. If set to False, the df is not shuffled, so that
+                        the first male in a cell is paired with the first female in the cell (as they appear in df),
+                        the second male with the second female, and so on until there is no male anymore (or no female).
+        :param permutation: optional, default None, 1D array of integer. If not None and shuffle is True, this
+                            permutation is used to shuffle df_population.
+        :param condition: optional, array of bool, default None. Tells which agents should be included.
+        :param id_attribute: optional, string, default 'col_id'. Id attribute of the agent. It is not recommended to
+                             change this column, as this column is considered internal, and in the future this fact
+                             could be used in other methods.
+        :param position_attribute: optional, string, default 'position'. Position attribute of the agents. Should be
+                                   integers corresponding to indexes of the vertices of the graph on which the agents
+                                   live.
+        :param gender_attribute: optional, string, default 'gender'.
+        :param mate_attribute: optional, string, default 'current_mate'.
+        :param pregnancy_attribute: optional, string, default 'is_pregnant'.
+        """
+        if self.df_population.nb_rows == 0:
+            return
+
+        if shuffle:
+            self.df_population.scramble(permutation=permutation)
+
+        arr_markers = []
+        for marker_name in self.list_markers_name:
+            arr_markers.append(self.df_population['marker_' + marker_name + '_1'])
+            arr_markers.append(self.df_population['marker_' + marker_name + '_2'])
+        arr_markers = np.vstack(arr_markers).T
+
+        if condition is None:
+            rand = np.random.uniform(0, 1, ((self.df_population[gender_attribute] == 1).sum(),))
+            self.dict_fathers_genomes = reproduction_with_marker_find_random_mate_on_position(
+                                                      self.df_population[mate_attribute],
+                                                      self.df_population[pregnancy_attribute],
+                                                      self.df_population[id_attribute],
+                                                      self.df_population[position_attribute],
+                                                      self.df_population[gender_attribute],
+                                                      self.graph.connections.shape[0],
+                                                      rand,
+                                                      prob_get_pregnant,
+                                                      arr_markers)
+        else:
+            rand = np.random.uniform(0, 1, (((self.df_population[gender_attribute] == 1) & condition).sum(),))
+            self.dict_fathers_genomes = reproduction_with_markers_find_random_mate_on_position_condition(
+                                                                self.df_population[mate_attribute],
+                                                                self.df_population[pregnancy_attribute],
+                                                                self.df_population[id_attribute],
+                                                                self.df_population[position_attribute],
+                                                                self.df_population[gender_attribute],
+                                                                self.graph.connections.shape[0],
+                                                                rand,
+                                                                prob_get_pregnant,
+                                                                condition,
+                                                                arr_markers)
+
+    def get_females(self):
+        """
+        :return: 1D array of bool telling which agents are females.
+        """
+        return self.df_population['gender'] == 1
+
+    def get_males(self):
+        """
+        :return: 1D array of bool telling which agents are males.
+        """
+        return self.df_population['gender'] == 0
+    
+    def add_marker(self, marker_name, number_variants, arr_markers_1=None, arr_markers_2=None):
+        if (self.df_population.number_agents == 0) and ((arr_markers_1 is None) or (arr_markers_2 is None)):
+            raise ValueError("The population is not empty. Thus, two arrays should be provided for the markers.")
+        
+        self.list_markers_name.append(marker_name)
+        self.list_nb_variants_per_marker.append(number_variants)
+
+        self.df_population['marker_' + marker_name + '_1'] = arr_markers_1
+        self.df_population['marker_' + marker_name + '_2'] = arr_markers_2
+        self.dict_default_val['marker_' + marker_name + '_1'] = 0
+        self.dict_default_val['marker_' + marker_name + '_2'] = 0

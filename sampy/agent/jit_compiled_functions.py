@@ -615,3 +615,98 @@ def _temp_random_walk_on_sphere_exit_random_walk_based_on_k(arr_selected_agents,
                 rv[i] = True
             counter += 1
     return rv
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# reproduction with markers section
+
+@nb.njit
+def reproduction_with_marker_find_random_mate_on_position(col_mate, col_pregnancy, arr_id, 
+                                                          position, gender, nb_vertex,
+                                                          rand_preg, prob_pregnancy,
+                                                          arr_markers):
+    returned_dict = dict()
+
+    list_vert_id_male = List()
+    list_vert_index_male = List()
+    for i in range(nb_vertex):
+        male_on_pos_i = List()
+        male_on_pos_i.append(arr_id[0])
+        male_on_pos_i.pop()
+        list_vert_id_male.append(male_on_pos_i)
+
+        index_male_on_pos_i = List()
+        index_male_on_pos_i.append(0)
+        index_male_on_pos_i.pop()
+        list_vert_index_male.append(index_male_on_pos_i)
+
+    arr_nb_male_per_vertex = np.full((nb_vertex,), 0, dtype=np.int32)
+    for i in range(arr_id.shape[0]):
+        col_mate[i] = -1
+        col_pregnancy[i] = False
+        if gender[i] == 0:
+            arr_nb_male_per_vertex[position[i]] += 1
+            list_vert_id_male[position[i]].append(arr_id[i])
+            list_vert_index_male[position[i]].append(i)
+            returned_dict[arr_id[i]] = arr_markers[i, :]
+
+    arr_ind_vertex = np.full((nb_vertex,), 0, dtype=np.int32)
+    counter = 0
+    for i in range(arr_id.shape[0]):
+        if gender[i] == 1:
+            if arr_ind_vertex[position[i]] < arr_nb_male_per_vertex[position[i]]:
+                col_mate[i] = list_vert_id_male[position[i]][arr_ind_vertex[position[i]]]
+                col_mate[list_vert_index_male[position[i]][arr_ind_vertex[position[i]]]] = arr_id[i]
+                arr_ind_vertex[position[i]] += 1
+                if rand_preg[counter] <= prob_pregnancy:
+                    col_pregnancy[i] = True
+            counter += 1
+
+    return returned_dict
+
+
+@nb.njit
+def reproduction_with_markers_find_random_mate_on_position_condition(col_mate, col_pregnancy, 
+                                                                     arr_id, position, gender, 
+                                                                     nb_vertex, rand_preg, 
+                                                                     prob_pregnancy, condition,
+                                                                     arr_markers):
+    returned_dict = dict()
+
+    list_vert_id_male = List()
+    list_vert_index_male = List()
+    for i in range(nb_vertex):
+        male_on_pos_i = List()
+        male_on_pos_i.append(arr_id[0])
+        male_on_pos_i.pop()
+        list_vert_id_male.append(male_on_pos_i)
+
+        index_male_on_pos_i = List()
+        index_male_on_pos_i.append(0)
+        index_male_on_pos_i.pop()
+        list_vert_index_male.append(index_male_on_pos_i)
+
+    arr_nb_male_per_vertex = np.full((nb_vertex,), 0, dtype=np.int32)
+    for i in range(arr_id.shape[0]):
+        if condition[i]:
+            col_mate[i] = -1
+            col_pregnancy[i] = False
+            if gender[i] == 0:
+                arr_nb_male_per_vertex[position[i]] += 1
+                list_vert_id_male[position[i]].append(arr_id[i])
+                list_vert_index_male[position[i]].append(i)
+                returned_dict[arr_id[i]] = arr_markers[i, :]
+
+    arr_ind_vertex = np.full((nb_vertex,), 0, dtype=np.int32)
+    counter = 0
+    for i in range(arr_id.shape[0]):
+        if gender[i] == 1 and condition[i]:
+            if arr_ind_vertex[position[i]] < arr_nb_male_per_vertex[position[i]]:
+                col_mate[i] = list_vert_id_male[position[i]][arr_ind_vertex[position[i]]]
+                col_mate[list_vert_index_male[position[i]][arr_ind_vertex[position[i]]]] = arr_id[i]
+                arr_ind_vertex[position[i]] += 1
+                if rand_preg[counter] <= prob_pregnancy:
+                    col_pregnancy[i] = True
+            counter += 1
+
+    return returned_dict

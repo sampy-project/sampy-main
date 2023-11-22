@@ -4,21 +4,6 @@ from numba.typed import List
 
 
 @nb.njit
-def conditional_proximity_is_step_allowed_return_infos(arr_selected_agents, distances, indices, arr_radius_point,
-                                                       condition_on_grid):
-    rv = np.full(arr_selected_agents.shape, False, dtype=np.bool_)
-    r_d = np.full(arr_selected_agents.shape, -1., dtype=float)
-    r_ind = np.full(arr_selected_agents.shape, -1, dtype=np.int32)
-    for i in range(arr_selected_agents.shape[0]):
-        if arr_selected_agents[i]:
-            if condition_on_grid[indices[i]] and (distances[i] <= arr_radius_point[indices[i]]):
-                rv[i] = True
-                r_d[i] = distances[i]
-                r_ind[i] = indices[i]
-    return rv, r_d, r_ind
-
-
-@nb.njit
 def conditional_proximity_is_pos_allowed(indices, distances, arr_radius_points, allowed_points):
     rv = np.full(indices.shape, False, dtype=np.bool_)
     for i in range(indices.shape[0]):
@@ -202,3 +187,18 @@ def convert_1D_float_like_array(input_array, output_array, input_indexes, input_
     for i in range(input_array.shape[0]):
         for j in range(input_indexes[i], input_indexes[i + 1]):
             output_array[input_connections[j]] += input_weights[j] * input_array[i]
+
+
+# @nb.njit
+# def conditional_proximity_is_step_allowed_return_infos(arr_selected_agents, distances, indices, arr_radius_point,
+#                                                        condition_on_grid):
+#     rv = np.full(arr_selected_agents.shape, False, dtype=np.bool_)
+#     r_d = np.full(arr_selected_agents.shape, -1., dtype=float)
+#     r_ind = np.full(arr_selected_agents.shape, -1, dtype=np.int32)
+#     for i in range(arr_selected_agents.shape[0]):
+#         if arr_selected_agents[i]:
+#             if condition_on_grid[indices[i]] and (distances[i] <= arr_radius_point[indices[i]]):
+#                 rv[i] = True
+#                 r_d[i] = distances[i]
+#                 r_ind[i] = indices[i]
+#     return rv, r_d, r_ind

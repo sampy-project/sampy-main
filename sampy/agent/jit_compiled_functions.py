@@ -547,7 +547,7 @@ def random_walk_on_sphere_validate_step(arr_selected_agent, arr_success, propose
 def random_walk_on_sphere_validate_step_return_fail(arr_selected_agent, arr_success, proposed_px, proposed_py,
                                                     proposed_pz, proposed_dx, proposed_dy, proposed_dz, px, py, pz,
                                                     dx, dy, dz):
-    returned_arr = np.full(arr_selected_agent.shape, False)
+    returned_arr = np.full(arr_selected_agent.shape, False, dtype=np.bool_)
     counter = 0
     for i in range(arr_selected_agent.shape[0]):
         if arr_selected_agent[i]:
@@ -559,7 +559,7 @@ def random_walk_on_sphere_validate_step_return_fail(arr_selected_agent, arr_succ
                 dy[i] = proposed_dy[counter]
                 dz[i] = proposed_dz[counter]
             else:
-                arr_selected_agent[i] = True
+                returned_arr[i] = True
             counter += 1
     return returned_arr
 

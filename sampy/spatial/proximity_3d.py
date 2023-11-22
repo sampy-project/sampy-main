@@ -2,9 +2,7 @@ import numpy as np
 
 from scipy.spatial import cKDTree
 
-from .jit_compiled_functions import (conditional_proximity_is_step_allowed_return_infos,
-                                     proximity_is_step_allowed_return_infos,
-                                     conditional_proximity_is_pos_allowed,
+from .jit_compiled_functions import (conditional_proximity_is_pos_allowed,
                                      proximity_is_pos_allowed)
 
 

@@ -710,3 +710,8 @@ def reproduction_with_markers_find_random_mate_on_position_condition(col_mate, c
             counter += 1
 
     return returned_dict
+
+
+@nb.njit
+def reproduction_with_marker_extract_gene_from_dict(nb_markers, arr_father_id, dict_marker_of_fathers):
+    pass

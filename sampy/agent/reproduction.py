@@ -572,3 +572,176 @@ class ReproductionMonogamousWithMarker:
         self.df_population['marker_' + marker_name + '_2'] = arr_markers_2
         self.dict_default_val['marker_' + marker_name + '_1'] = 0
         self.dict_default_val['marker_' + marker_name + '_2'] = 0
+
+    def _sampy_debug_create_offsprings_custom_prob(self,
+                                                   arr_nb_children,
+                                                   arr_prob_nb_children,
+                                                   condition=None,
+                                                   dico_default_values=None,
+                                                   prob_failure=None,
+                                                   age_attribute='age',
+                                                   mother_attribute='mom_id',
+                                                   father_attribute='dad_id',
+                                                   gender_attribute='gender',
+                                                   id_attribute='col_id',
+                                                   position_attribute='position',
+                                                   territory_attribute='territory',
+                                                   mate_attribute='current_mate',
+                                                   pregnancy_attribute='is_pregnant'):
+        if self.df_population.nb_rows == 0:
+            return
+
+        check_input_array(arr_nb_children, 'arr_nb_children', 'int', nb_dim=1)
+        check_input_array(arr_prob_nb_children, 'arr_prob_nb_children', 'float', nb_dim=1)
+
+        if arr_nb_children.shape != arr_prob_nb_children.shape:
+            raise ValueError("Arguments 'arr_nb_children' and 'arr_prob_nb_children' have different shapes.")
+
+        if condition is not None:
+            check_input_array(condition, 'condition', 'bool', shape=(self.df_population.nb_rows,))
+
+        if dico_default_values is not None:
+            if not hasattr(dico_default_values, 'items') or hasattr(getattr(dico_default_values, 'items'), '__call__'):
+                raise TypeError("The argument 'dico_default_value' should be a dictionnary-like object. Namely, have a "
+                                "method called 'items' allowing to loop through keys and values.")
+
+        check_col_exists_good_type(self.df_population, age_attribute, 'age_attribute', prefix_dtype='int',
+                                   reject_none=True)
+        check_col_exists_good_type(self.df_population, mother_attribute, 'mother_attribute', prefix_dtype='int',
+                                   reject_none=True)
+        check_col_exists_good_type(self.df_population, father_attribute, 'father_attribute', prefix_dtype='int',
+                                   reject_none=True)
+
+        check_if_gender_array(self.df_population[gender_attribute])
+
+        check_col_exists_good_type(self.df_population, position_attribute, 'position_attribute', prefix_dtype='int',
+                                   reject_none=True)
+        check_col_exists_good_type(self.df_population, territory_attribute, 'territory_attribute', prefix_dtype='int',
+                                   reject_none=True)
+        check_col_exists_good_type(self.df_population, mate_attribute, 'mate_attribute', prefix_dtype='int',
+                                   reject_none=True)
+
+        check_col_exists_good_type(self.df_population, pregnancy_attribute, 'pregnancy_attribute', prefix_dtype='bool',
+                                   reject_none=True)
+
+    def create_offsprings_custom_prob(self,
+                                      arr_nb_children,
+                                      arr_prob_nb_children,
+                                      condition=None,
+                                      dico_default_values=None,
+                                      prob_failure=None,
+                                      age_attribute='age',
+                                      mother_attribute='mom_id',
+                                      father_attribute='dad_id',
+                                      gender_attribute='gender',
+                                      id_attribute='col_id',
+                                      position_attribute='position',
+                                      territory_attribute='territory',
+                                      mate_attribute='current_mate',
+                                      pregnancy_attribute='is_pregnant'):
+        """
+        Creates offsprings using two 1D arrays of same size, 'arr_nb_children' and 'arr_prob_nb_children', being
+        respectively an array of integers and an array of non-negative floats, where for any index i,
+        arr_prob_nb_children[i] is the probability for pregnant females to give birth to arr_nb_children[i]
+        offsprings.
+
+        Note that arr_prob_nb_children is normalized so that it sums to 1.
+
+        :param arr_nb_children: 1D array of int, see above description.
+        :param arr_prob_nb_children: 1d array of floats, see above description.
+        :param condition: optional, 1d array of bool, default None. Tells which female and pregnant agents are allowed
+                          to give birth.
+        :param dico_default_values: optional, dictionnary, default None. Contains default values for the offsprings
+                                    attributes. Any attribute not provided will use default values built-in the
+                                    population object.
+        :param prob_failure: optional, float, default None. Probability for an agent trying to give birth to fail such
+                             action. As a result, the agent would no longer be pregnant and would not produce any
+                             offspring.
+        :param age_attribute: optional, string, default 'age'. Agent attribute used as age
+        :param mother_attribute: optional, string, default 'mom_id'. Agent attribute used as mother id
+        :param father_attribute: optional, string, default 'dad_id'. Agent attribute used as father id
+        :param id_attribute: optional, string, default 'col_id'. Agent attribute used as agent id.
+        :param position_attribute: optional, string, default 'position'.
+        :param territory_attribute: optional, string, default 'territory'. If no territory in the model, the user should
+                                    set it to None.
+        :param mate_attribute: optional, string, default 'current_mate'. Agent attribute used as id of the mate.
+        :param pregnancy_attribute: optional, string, default 'is_pregnant'.
+        """
+        if self.df_population.nb_rows == 0:
+            return
+
+        if dico_default_values is None:
+            dico_default_values = dict()
+
+        selected_females = self.df_population[pregnancy_attribute]
+        if condition is not None:
+            selected_females = selected_females & condition
+        if prob_failure is not None:
+            selected_females = selected_females & \
+                               (np.random.uniform(0, 1, (self.df_population.nb_rows,)) >= prob_failure)
+
+        df_selected_female = self.df_population[selected_females]
+
+        if df_selected_female.nb_rows == 0:
+            return
+
+        # get number of babies per females
+        prob = arr_prob_nb_children.astype('float64')
+        prob = prob/prob.sum()
+        arr_nb_baby = np.random.choice(arr_nb_children, df_selected_female.nb_rows, p=prob)
+
+        arr_non_zero_babies = arr_nb_baby > 0
+        df_selected_female = df_selected_female[arr_non_zero_babies]
+
+        if df_selected_female.nb_rows == 0:
+            return
+
+        arr_nb_baby = arr_nb_baby[arr_non_zero_babies]
+
+        # start building the children DataFrame
+        df_children = DataFrameXS()
+        df_children[mother_attribute] = np.repeat(df_selected_female[id_attribute], arr_nb_baby, axis=0)
+        df_children[father_attribute] = np.repeat(df_selected_female[mate_attribute], arr_nb_baby, axis=0)
+        df_children[position_attribute] = np.repeat(df_selected_female[position_attribute], arr_nb_baby, axis=0)
+        if territory_attribute is not None:
+            df_children[territory_attribute] = np.repeat(df_selected_female[territory_attribute], arr_nb_baby, axis=0)
+
+        # extract the genetic information of the mothers
+        list_arr_genes_mothers = []
+        for marker_name in self.list_markers_name:
+            list_arr_genes_mothers.append(np.repeat(df_selected_female['marker_' + marker_name + '_1'], arr_nb_baby, axis=0))
+            list_arr_genes_mothers.append(np.repeat(df_selected_female['marker_' + marker_name + '_2'], arr_nb_baby, axis=0))
+        stack_arr_genes_mothers = np.vstack(list_arr_genes_mothers).T
+
+        # extract the genetic information of the fathers
+
+        # defines the gender of the offsprings
+        gender = 1 * (np.random.uniform(0, 1, (df_children.shape[0],)) >= 0.5)
+        df_children[gender_attribute] = gender
+
+        # fill non trivial attributes
+        df_children[pregnancy_attribute] = False
+        df_children[age_attribute] = 0
+        df_children[id_attribute] = np.arange(self.counter_id, self.counter_id + df_children.shape[0])
+        self.counter_id = self.counter_id + df_children.shape[0]
+
+        # take care of the provided default values
+        for attr, def_value in dico_default_values.items():
+            df_children[attr] = def_value
+
+        # take care of the rest
+        set_treated_col = set([mother_attribute, father_attribute, position_attribute, territory_attribute,
+                               gender_attribute, pregnancy_attribute, age_attribute, id_attribute])
+        for col_name in self.df_population.list_col_name:
+            if col_name in set_treated_col or col_name in dico_default_values:
+                continue
+            if col_name in self.dict_default_val:
+                df_children[col_name] = self.dict_default_val[col_name]
+            else:
+                df_children[col_name] = None
+
+        # set pregnancy of female that gave birth to False
+        self.df_population[pregnancy_attribute] = self.df_population[pregnancy_attribute] & ~selected_females
+
+        # concatenate the two dataframe
+        self.df_population.concat(df_children)

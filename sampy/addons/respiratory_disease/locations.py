@@ -23,6 +23,9 @@ class Locations:
     @property
     def number_locations(self):
         return self.df_attributes.nb_rows
+    
+    def reset_rng(self, rng_seed):
+        self.rng = np.random.default_rng(seed=rng_seed)
 
     def get_locs(self, type_loc):
         """

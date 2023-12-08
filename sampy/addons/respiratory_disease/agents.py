@@ -27,6 +27,9 @@ class Agents:
     @property
     def number_agents(self):
         return self.df_population.nb_rows
+    
+    def reset_rng(self, rng_seed):
+        self.rng = np.random.default_rng(seed=rng_seed)
         
     def allocate_homes(self, type_loc, capacity_attribute='capacity', home_attribute='home',
                        nb_occupant_per_home_attribute='number_occupants'):
@@ -59,3 +62,10 @@ class Agents:
         
         self.df_population[home_attribute] = home_array
         self.locations.create_attribute(nb_occupant_per_home_attribute, arr_occupants_in_home)
+
+    def allocate_community(self, arr_age_groups, arr_prob_per_age_group, list_loc_type):
+        """
+        Allocate a community location to each agent. This is done randomly using age-group based
+        probabilities.
+        """
+        pass

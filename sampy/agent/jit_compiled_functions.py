@@ -713,5 +713,18 @@ def reproduction_with_markers_find_random_mate_on_position_condition(col_mate, c
 
 
 @nb.njit
-def reproduction_with_marker_extract_gene_from_dict(nb_markers, arr_father_id, dict_marker_of_fathers):
-    pass
+def reproduction_with_marker_extract_gene_from_dict(arr_father_id, dict_marker_of_fathers, arr_markers):
+    for i in range(arr_markers.shape[0]):
+        for j in range(arr_markers.shape[0]):
+            arr_markers[i, j] = dict_marker_of_fathers[arr_father_id[i]][j]
+
+
+@nb.njit
+def reproduction_with_marker_attribute_genes_to_offsprings(arr_offsprings_gene, 
+                                                           arr_father_genes, 
+                                                           arr_mother_genes,
+                                                           arr_random):
+    for i in range(arr_offsprings_gene.shape[0]):
+        for j in range(arr_offsprings_gene.shape[0] // 2):
+            arr_offsprings_gene[i, 2*j] = arr_mother_genes[i, 2*j + arr_random[i, 2*j]]
+            arr_offsprings_gene[i, 2*j + 1] = arr_father_genes[i, 2*j + arr_random[i, 2*j + 1]]

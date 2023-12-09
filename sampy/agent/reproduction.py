@@ -4,7 +4,9 @@ from .jit_compiled_functions import (reproduction_find_random_mate_on_position,
                                      reproduction_find_random_mate_on_position_polygamous,
                                      reproduction_find_random_mate_on_position_polygamous_condition,
                                      reproduction_with_marker_find_random_mate_on_position,
-                                     reproduction_with_markers_find_random_mate_on_position_condition)
+                                     reproduction_with_markers_find_random_mate_on_position_condition,
+                                     reproduction_with_marker_extract_gene_from_dict,
+                                     reproduction_with_marker_attribute_genes_to_offsprings)
 from ..pandas_xs.pandas_xs import DataFrameXS
 
 from .. utils.errors_shortcut import (check_input_is_permutation,
@@ -714,6 +716,27 @@ class ReproductionMonogamousWithMarker:
         stack_arr_genes_mothers = np.vstack(list_arr_genes_mothers).T
 
         # extract the genetic information of the fathers
+        stack_arr_genes_fathers = np.zeros(stack_arr_genes_mothers.shape, dtype=int)
+        reproduction_with_marker_extract_gene_from_dict(df_children[father_attribute], self.dict_fathers_genomes, stack_arr_genes_fathers)
+
+        # now we attribute the markers to each offsprings in a stacked array
+        stack_arr_genes_offsprings = np.zeros(stack_arr_genes_mothers.shape, dtype=int)
+        random_for_genes_attributions = np.random.randint(0, 2, stack_arr_genes_offsprings.shape)
+        reproduction_with_marker_attribute_genes_to_offsprings(stack_arr_genes_offsprings,
+                                                               stack_arr_genes_fathers,
+                                                               stack_arr_genes_mothers,
+                                                               random_for_genes_attributions)
+
+        # finally we split the stacked array and create the offspring markers attributes
+        for i, marker_name in enumerate(self.list_markers_name):
+            df_children['marker_' + marker_name + '_1'] = np.copy(stack_arr_genes_offsprings[:, 2 * i])
+            df_children['marker_' + marker_name + '_2'] = np.copy(stack_arr_genes_offsprings[:, 2 * i + 1])
+
+        del stack_arr_genes_offsprings
+        del stack_arr_genes_fathers
+        del stack_arr_genes_mothers
+        self.dict_fathers_genomes = None
+
 
         # defines the gender of the offsprings
         gender = 1 * (np.random.uniform(0, 1, (df_children.shape[0],)) >= 0.5)
@@ -732,6 +755,10 @@ class ReproductionMonogamousWithMarker:
         # take care of the rest
         set_treated_col = set([mother_attribute, father_attribute, position_attribute, territory_attribute,
                                gender_attribute, pregnancy_attribute, age_attribute, id_attribute])
+        for marker_name in self.list_markers_name:
+            set_treated_col.add('marker_' + marker_name + '_1')
+            set_treated_col.add('marker_' + marker_name + '_2')
+
         for col_name in self.df_population.list_col_name:
             if col_name in set_treated_col or col_name in dico_default_values:
                 continue

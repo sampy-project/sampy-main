@@ -4,6 +4,7 @@ from ...graph.vertex_attributes import BaseVertexAttributes
 from ...utils.decorators import sampy_class
 
 import numpy as np
+import geojson
 
 
 @sampy_class
@@ -143,9 +144,9 @@ class HexGrid(BaseVertexAttributes,
                           hex_grid.df_attributes['coord_y'] * y_dir_plane[2] + \
                           center_projection[2]
         
-        print(x_dir_plane)
-        print(y_dir_plane)
-        print(center_projection)
+        # print(x_dir_plane)
+        # print(y_dir_plane)
+        # print(center_projection)
         
         # we normalize those coordinates to compute the lat-lon couples
         norm = np.sqrt(hex_centroids_x**2 + hex_centroids_y**2 + hex_centroids_z**2)
@@ -175,3 +176,23 @@ class HexGrid(BaseVertexAttributes,
                                                     (180*np.arctan2(hex_vertices_y_normalized, hex_vertices_x_normalized)/np.pi).astype(np.float64)])
         
         return hex_grid
+    
+    def create_geojson(self, path_geojson):
+        """
+        Creates a geojson file containing all the 
+        """
+        list_features = []
+        for index_hex in range(self.cell_vertices_lat_lon.shape[0]):
+            list_features.append(geojson.Feature(geometry=geojson.Polygon([[(self.cell_vertices_lat_lon[index_hex, i%6, 1],
+                                                                             self.cell_vertices_lat_lon[index_hex, i%6, 0]) for i in range(7)]]),
+                                                                             properties={'id': index_hex}))
+        final_geojson = geojson.FeatureCollection(list_features)
+        with open(path_geojson, 'w') as f_out:
+            f_out.write(geojson.dumps(final_geojson))
+        print("geojson created")
+        
+    def save_graph(self, path_folder):
+        """
+        todo
+        """
+        pass

@@ -2,6 +2,7 @@ from ...graph.spatial_2d import SpatialComponentsTwoDimensionalOrientedHexagons
 from ...graph.topology import OrientedHexagonalGridOnSquare
 from ...graph.vertex_attributes import BaseVertexAttributes
 from ...utils.decorators import sampy_class
+from .jit_compiled_functions import keep_subgraph_from_array_of_bool_equi_weight
 
 import numpy as np
 import geojson
@@ -144,10 +145,6 @@ class HexGrid(BaseVertexAttributes,
                           hex_grid.df_attributes['coord_y'] * y_dir_plane[2] + \
                           center_projection[2]
         
-        # print(x_dir_plane)
-        # print(y_dir_plane)
-        # print(center_projection)
-        
         # we normalize those coordinates to compute the lat-lon couples
         norm = np.sqrt(hex_centroids_x**2 + hex_centroids_y**2 + hex_centroids_z**2)
         hex_centroids_x_normalized = np.longdouble(hex_centroids_x / norm)
@@ -193,6 +190,90 @@ class HexGrid(BaseVertexAttributes,
         
     def save_graph(self, path_folder):
         """
-        todo
+        Save the graph in a folder. The new folder is created by the method. If something already
+        exists at the given path, an exception is raised. Data are stored using .npy files, and the 
+        resulting folder may be large depending on the size of the graph.
+
+        :param path_folder: string or path object. Path to the folder to be created.  
         """
         pass
+
+    def load_graph(self, path_folder):
+        """
+        TODO
+        """
+        pass
+
+    def modify_from_csv(self, path_to_csv, name_col_with_id, sep=',', to_keep=None, 
+                        dict_attribute_to_type=None):
+        """
+        TODO
+        """
+        # prepar dict in which data will be stored
+        dict_attr_to_val = {name_col_with_id: []}
+        if to_keep is not None:
+            dict_attr_to_val[to_keep] = []
+        if dict_attribute_to_type is not None:
+            for key in dict_attribute_to_type.keys():
+                dict_attr_to_val[key] = []
+        
+        with open(path_to_csv, 'r') as csv_in:
+            for i, line in enumerate(csv_in):
+                data = line.replace('\n', '').split(sep)
+
+                if i == 0:
+                    # get position in CSV of each column
+                    dict_name_position = {name:pos for pos, name in enumerate(data)}
+                    continue
+
+                for col_name in dict_attr_to_val:
+                    if col_name == name_col_with_id:
+                        dict_attr_to_val[col_name].append(int(data[dict_name_position[col_name]]))
+                    elif col_name == to_keep:
+                        bool_val = data[dict_name_position[col_name]]
+                        if (bool_val.lower() == 'true') or (bool_val == '1'):
+                            bool_val = True
+                        elif (bool_val.lower() == 'false') or (bool_val == '0'):
+                            bool_val = False
+                        else:
+                            raise ValueError("Unexpected entry for boolean column:" + bool_val + '.')
+                        dict_attr_to_val[to_keep].append(bool_val)
+                    else:
+                        if dict_attribute_to_type[col_name] == bool:
+                            bool_val = data[dict_name_position[col_name]]
+                            if (bool_val.lower() == 'true') or (bool_val == '1'):
+                                bool_val = True
+                            elif (bool_val.lower() == 'false') or (bool_val == '0'):
+                                bool_val = False
+                            else:
+                                raise ValueError("Unexpected entry for boolean column:" + bool_val + '.')
+                            dict_attr_to_val[col_name].append(bool_val)
+                        else:
+                            value = dict_attribute_to_type[col_name](data[dict_name_position[col_name]])
+                            dict_attr_to_val[col_name].append(value)
+                
+        # the order of the vertices may be messed up, so we create a permutation that will sort 
+        # everything as needed. Solution found on stack overflow for computing the inverse.
+                            
+        perm = np.array(dict_attr_to_val[name_col_with_id])
+        inv = np.empty_like(perm)
+        inv[perm] = np.arange(len(inv), dtype=inv.dtype)
+
+        for key, val in dict_attr_to_val.items():
+            if (key != name_col_with_id) and (key != to_keep):
+                self.df_attributes[key] = np.array(val)[inv]
+
+        new_connections, new_weights = keep_subgraph_from_array_of_bool_equi_weight(np.array(dict_attr_to_val[to_keep])[inv], 
+                                                                                    self.connections)
+        
+        self.connections = new_connections
+        self.weights = new_weights
+        self.df_attributes = self.df_attributes[np.array(dict_attr_to_val[to_keep])[inv]]
+
+        # create the new dict from id to index
+        self.dict_cell_id_to_ind = dict()
+        counter = 0
+        for i, val in enumerate(np.array(dict_attr_to_val[to_keep])[inv]):
+            if val:
+                self.dict_cell_id_to_ind[i] = counter
+                counter += 1

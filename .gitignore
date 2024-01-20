@@ -7,4 +7,5 @@ script_video.py
 test_get_all_objects.py
 test_PAN_rw.py
 test_chap3_*
+script_project_*
 test_extract_info.py

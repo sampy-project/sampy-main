@@ -140,7 +140,7 @@ class SphericalRandomWalk:
                                                        self.df_population['dy'],
                                                        self.df_population['dz'])
 
-    def set_direction_von_mises(self, arr_selected_agents, kappa):
+    def set_direction_von_mises(self, arr_selected_agents, kappa, mean=0.):
         """
         Set the direction of the selected agents by deviating their current direction by an angle 
         given by von mises distribution.
@@ -149,8 +149,9 @@ class SphericalRandomWalk:
                                     changed
         :param kappa: kappa parameter for the von mises distribution. The hiher the value of Kappa, 
                       the smaller the deviation.
+        :param mean: optionnal, float, default 0. . The mean of the von-mises distribution.
         """
-        deviation_angles = np.random.vonmises(0, kappa, (arr_selected_agents.sum(),))
+        deviation_angles = np.random.vonmises(mean, kappa, (arr_selected_agents.sum(),))
         random_walk_on_sphere_deviate_direction_from_angles(deviation_angles, arr_selected_agents,
                                                             self.df_population['px'],
                                                             self.df_population['py'],

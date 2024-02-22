@@ -564,7 +564,7 @@ class ReproductionMonogamousWithMarker:
         return self.df_population['gender'] == 0
     
     def add_marker(self, marker_name, number_variants, arr_markers_1=None, arr_markers_2=None):
-        if (self.df_population.number_agents == 0) and ((arr_markers_1 is None) or (arr_markers_2 is None)):
+        if (self.df_population.number_agents != 0) and ((arr_markers_1 is None) or (arr_markers_2 is None)):
             raise ValueError("The population is not empty. Thus, two arrays should be provided for the markers.")
         
         self.list_markers_name.append(marker_name)

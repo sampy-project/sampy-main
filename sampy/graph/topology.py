@@ -60,30 +60,33 @@ class BaseTopology:
 
 
 class SquareGridWithDiagTopology(BaseTopology):
-    def __init__(self, shape=None, **kwargs):
+    def __init__(self, shape=None, equi_prob=False, **kwargs):
         if shape is None:
             raise ValueError("Kwarg 'shape' is missing while initializing the graph topology. 'shape' should be a "
                              "tuple like object of the form (a, b), where a and b are integers bigger than 1.")
         len_side_a = shape[0]
         len_side_b = shape[1]
-        self.create_square_with_diag_grid(len_side_a, len_side_b)
+        self.create_square_with_diag_grid(len_side_a, len_side_b, equi_prob=equi_prob)
         self.shape = (len_side_a, len_side_b)
         self.type = 'SquareGridWithDiag'
 
-    def create_square_with_diag_grid(self, len_side_a, len_side_b):
+    def create_square_with_diag_grid(self, len_side_a, len_side_b, equi_prob=False):
         """
         Create a square grid with diagonals, where each vertex X[i][j] is linked to X[i-1][j-1], X[i][j-1], X[i+1][j-1],
         X[i+1][j], X[i+1][j+1], x[i][j+1], x[i-1][j+1] and x[i-1][j] if they exist. Note that the weights on the
         'diagonal connections' is reduced to take into account the fact that the vertices on the diagonal are 'further
-        away' (i.e. using sqrt(2) as a distance instead of 1 in the weight computation).
+        away' (i.e. using sqrt(2) as a distance instead of 1 in the weight computation). If one wants all the weights
+        to be equal (so that an agent moving from a cell has the same probability to perform a diagonal step as to 
+        perform an horizontal/vertical step), set the kwarg equi_prob to True.
 
         :param len_side_a: integer, x coordinate
         :param len_side_b: integer, y coordinate
+        :param equi_prob: bool, optional, default False. If True, all the neighbouring cells have the same weight.
         """
         if (len_side_a < 2) or (len_side_b < 2):
             raise ValueError('side length attributes for HexagonalCells should be at least 2.')
 
-        self.connections, self.weights = create_grid_square_with_diagonals(len_side_a, len_side_b)
+        self.connections, self.weights = create_grid_square_with_diagonals(len_side_a, len_side_b, equi_prob)
 
         # populate the dictionary from cell coordinates to cell indexes in arrays connection and weights
         for i in range(len_side_a):

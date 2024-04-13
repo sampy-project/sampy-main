@@ -56,7 +56,20 @@ def extract_deviation_angles(list_lat, list_lon, input_in_radians=False):
     arr_z = arr_z.astype(np.float64)
 
     # we now compute the deviation angles
+    deviation_angles = []
     for i in range(arr_x.shape[0] - 2):
-        start_pos = [arr_x[i], arr_y[i], arr_z[i]]
-        middle_pos = [arr_x[i + 1], arr_y[i + 1], arr_z[i + 1]]
-        end_pos = [arr_x[i + 2], arr_y[i + 2], arr_z[i + 2]]
+        start_pos =  np.array([arr_x[i],     arr_y[i],     arr_z[i]])
+        middle_pos = np.array([arr_x[i + 1], arr_y[i + 1], arr_z[i + 1]])
+        end_pos =    np.array([arr_x[i + 2], arr_y[i + 2], arr_z[i + 2]])
+
+        first_dir_translated = -(start_pos - middle_pos)
+        first_dir_translated -= (np.dot(first_dir_translated, middle_pos)) * middle_pos
+        second_dir = end_pos - middle_pos
+        second_dir -= (np.dot(second_dir, middle_pos)) * middle_pos
+
+        angle = np.arccos(np.dot(first_dir_translated, second_dir) / (np.linalg.norm(first_dir_translated) * np.linalg.norm(second_dir)))
+        sign = np.sign(np.dot(middle_pos, np.cross(first_dir_translated, second_dir)))
+
+        deviation_angles.append(sign * angle)
+
+    return np.array(deviation_angles)

@@ -137,18 +137,23 @@ def create_grid_square_cells(len_side_a, len_side_b):
     return connections, weights
 
 
-def create_grid_square_with_diagonals(len_side_a, len_side_b):
+def create_grid_square_with_diagonals(len_side_a, len_side_b, equi_prob):
     """
     Create connections and weights arrays for a square grid, with diagonal links.
 
     :param len_side_a: integer
     :param len_side_b: integer
+    :param equi_prob: bool, tell if the diagonal weights should be 1. or 1/sqrt(2)
+
     :return: two numpy arrays of shape (len_side_a*len_side_b, 8)
     """
     connections = np.full((len_side_a * len_side_b, 8), -1, dtype=np.int32)
     weights = np.full((len_side_a * len_side_b, 8), -1., dtype=np.float64)
 
-    diag_weight = 1/sqrt(2)
+    if equi_prob:
+        diag_weight = 1.
+    else:
+        diag_weight = 1/sqrt(2)
 
     # first 4 corner
     x = 2 + diag_weight

@@ -99,7 +99,7 @@ class BaseAgingAgent:
             if not isinstance(key, str):
                 raise KeyError("Column names should be a string.")
             if key not in self.df_population.dict_colname_to_index:
-                raise KeyError("The agents have an that is not a column of the population DataFrame (" + key + ").")
+                raise KeyError("The agents have an attribute that is not a column of the population DataFrame (" + key + ").")
             x = np.array(val)
             if len(x.shape) > 1:
                 raise ValueError("The value for column " + key + " results in an array of dimension " +
@@ -126,8 +126,8 @@ class BaseAgingAgent:
         want some columns to be filled with a single value. If the user provides constant for all list_of_values, then a
         single line is added. Finally, any non mentioned column will be filled with the associated default value.
 
-        Note that the user does not have the hand on the col_id column since it is considered internal, and the user
-        should add an extra column to identify some individuals.
+        Note that the user does not have the hand on the col_id column since it is considered internal, and you
+        should add an extra column if you want to identify individuals using your own conventions.
 
         :param dict_values: values of the attributes of the new individuals.
         """
@@ -174,6 +174,13 @@ class BaseAgingAgent:
 
         # concatenate df to df_population
         self.df_population.concat(df, inplace=True)
+
+    def add_agents_from_dataframe(self, dataframe):
+        """
+        add new rows to the dataframe df_population, which corresponds to new individuals.
+        Those agents are given in the form
+        """
+        pass
 
     def increase_age(self):
         """

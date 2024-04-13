@@ -9,7 +9,7 @@ class DataFrameXS:
     Class that encodes a really simplified version of a dataframe, where each column is stored as a separated one
     dimensional numpy array. Note that this class is made to be more rigid than Pandas Dataframe: the class won't try
     to fill in blanks or fancy things like that. The idea being to maintain control on what is going on and avoid bugs
-    that goes unnoticed.
+    that go unnoticed.
 
     Indexing:
     ---------
@@ -308,6 +308,32 @@ class DataFrameXS:
             return
         else:
             return np.copy(col)
+        
+    def drop_column(self, col_name):
+        """
+        Delete a column from the DataFrame.
+
+        :param col_name: string, name of the column to delete.
+        """
+        if not col_name in self.dict_colname_to_index:
+            raise ValueError(col_name + " is not the name of a column of the DataFrame.")
+        
+        # get the index of the column
+        index_column = self.dict_colname_to_index[col_name]
+
+        _ = self.list_col.pop(index_column)
+        self.list_col_name.remove(col_name)
+        del self.dict_colname_to_index[col_name]
+
+        # the indexes of the column appearing at the right of the deleted column should be shifted by 1
+        for name in self.dict_colname_to_index:
+            if self.dict_colname_to_index[name] >= index_column:
+                self.dict_colname_to_index[name] -= 1
+
+        self.nb_cols -= 1
+        if self.is_empty:
+            self.nb_rows = 0
+        
 
     def _sampy_debug_check_arr_in_col(self, input_arr, name_col, condition=None):
         if condition is not None:
@@ -370,7 +396,7 @@ class DataFrameXS:
             new_list_col.append(np.copy(col))
         return self._create_df_without_check(self.list_col_name, new_list_col, self.nb_rows, self.nb_cols)
 
-    def concat(self, df, inplace=True):
+    def concat(self, df, inplace=True, dict_default_values=None):
         """
         Append the input DataFrameXS to the current DataFrameXS. The column names of the current DataFrameXS have to be
         column names of the input, or an Exception will be raised. Finally, note that the types of the columns of the
@@ -378,9 +404,18 @@ class DataFrameXS:
 
         Extra columns in the input are ignored.
 
+        WARNING: if one column of one of the dataframes involved exists but is empty while the same column in the 
+                 other is not, this method tries to fill the missing values with np.NaN and then convert the obtained 
+                 column into the correct dtype. This results in unexpected behaviour when the column is supposed to be
+                 of type bool. Therefore, we recommand the user to provide default values to be used instead of NaN 
+                 using the kwarg 'dict_default_values'. 
+
         :param df: DataFrame XS
         :param inplace: optional, boolean, default True. If True, the input is appended to the current DataFrame.
                         Otherwise, a new DataFrameXS is returned.
+        :param dict_default_values: optional, dictionary, default None. Dictionary of the form {name_col: default val, ...}.
+                                    Provides default values to be used if a column of one of the DF is empty while the same
+                                    column in the other is not.
 
         :return: if inplace is False, return a DataFrameXS, otherwise returns None.
         """
@@ -422,11 +457,17 @@ class DataFrameXS:
                     if df_col is not None:
                         new_col.append(np.hstack([self_col, df_col]).astype(self_col.dtype))
                     else:
-                        filled_col = np.full((df.nb_rows,), np.nan).astype(self_col.dtype)
+                        if dict_default_values is not None and name in dict_default_values:
+                            filled_col = np.full((df.nb_rows,), dict_default_values[name]).astype(self_col.dtype)
+                        else:
+                            filled_col = np.full((df.nb_rows,), np.nan).astype(self_col.dtype)
                         new_col.append(np.hstack([self_col, filled_col]).astype(self_col.dtype))
                 else:
                     if df_col is not None:
-                        filled_col = np.full((self.nb_rows,), np.nan).astype(df_col.dtype)
+                        if dict_default_values is not None and name in dict_default_values:
+                            filled_col = np.full((self.nb_rows,), dict_default_values[name]).astype(df_col.dtype)
+                        else:
+                            filled_col = np.full((self.nb_rows,), np.nan).astype(df_col.dtype)
                         new_col.append(np.hstack([filled_col, df_col]).astype(df_col.dtype))
                     else:
                         new_col.append(None)

@@ -175,12 +175,44 @@ class BaseAgingAgent:
         # concatenate df to df_population
         self.df_population.concat(df, inplace=True)
 
-    def add_agents_from_dataframe(self, dataframe):
+    def _sampy_debug_add_agents_from_dataframe(self, dataframe):
+        if not isinstance(dataframe, DataFrameXS):
+            raise ValueError("The dataframe should be a DataFrameXS object.")
+
+    def add_agents_from_dataframe(self, dataframe: DataFrameXS):
         """
         add new rows to the dataframe df_population, which corresponds to new individuals.
-        Those agents are given in the form
+        Those agents are given in the form of a DataFrameXS object where each row corresponds
+        to a new agent. 
+
+        WARNING: this method will modify the input DataFrame. For instance, if the input
+                 DataFrame contains a column col_id, it will be dropped and replaced by
+                 a new one with values consistant with the current ids. It is planned
+                 to add an option to allow this method to work with a copy of the input
+                 dataframe instead.
+
+        :param dataframe: A DataFrameXS object.
         """
-        pass
+        if dataframe.is_empty:
+            return
+        
+        # first, if the input DataFrame contains a column named "col_id", it should be dropped.
+        if 'col_id' in dataframe.dict_colname_to_index:
+            dataframe.drop_column('col_id')
+
+        # we now create a compatible id column for the new agents
+        dataframe['col_id'] = [self.counter_id + i for i in range(dataframe.nb_rows)]
+        self.counter_id = dataframe['col_id'][-1] + 1 # save new value for next agents
+
+        # we now check that the method has everything required to fill in the "potentially missing" values
+        for name in self.df_population.list_col_name:
+            if name not in self.dict_default_val:
+                if (name in dataframe.dict_colname_to_index) and (dataframe[name] is None):
+                    raise ValueError("The dataframe describing the new agents has an empty column named " + name + ", and there is no associated default value associated with this column.")
+                if (name not in dataframe.dict_colname_to_index):
+                    raise ValueError("The dataframe describing the new agents does not have a column named " + name + ", and there is no associated default value associated with this column.")
+        
+        self.df_population.concat(dataframe, inplace=True, dict_default_values=self.dict_default_val)
 
     def increase_age(self):
         """

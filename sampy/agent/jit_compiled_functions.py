@@ -248,6 +248,27 @@ def reproduction_find_random_mate_on_position_polygamous_condition(arr_id, posit
 
 
 @nb.njit
+def movement_change_position_condition(position, condition, rand, connections, weights):
+    counter_rand = 0
+    for i in range(position.shape[0]):
+        if condition[i]:
+            for j in range(weights.shape[1]):
+                if rand[counter_rand] <= weights[position[i], j]:
+                    position[i] = connections[position[i], j]
+                    break
+            counter_rand += 1
+
+
+@nb.njit
+def movement_change_position(position, rand, connections, weights):
+    for i in range(position.shape[0]):
+        for j in range(weights.shape[1]):
+            if rand[i] <= weights[position[i], j]:
+                position[i] = connections[position[i], j]
+                break
+
+
+@nb.njit
 def movement_change_territory_and_position_condition(territory, position, condition, rand, connections, weights):
     counter_rand = 0
     for i in range(territory.shape[0]):

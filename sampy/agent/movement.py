@@ -5,6 +5,39 @@ from ..utils.errors_shortcut import (check_col_exists_good_type,
                                      check_input_array)
 
 
+class BasicMovement:
+    """
+    Add basic graph based movement abilities to the agents. Agents get a new position attribute, which stores
+    a vertex id (i.e. an integer representing a unique vertex of the graph) corresponding to the vertex on
+    which the agent live.
+    """
+    def __init__(self, **kwargs):
+        # this check is in Theory not needed, since a 'BaseClass' should provide a df_population attribute
+        if not hasattr(self, 'df_population'):
+            self.df_population = DataFrameXS()
+
+        self.df_population['position'] = None
+
+    def change_position(self, condition=None, position_attribute='position'):
+        """
+        Change the position of the agents by making them move to a neighouring vertex. If an agent is on an
+        isolated vertex (a vertex without any neighbour), then the agent stays on the vertex.
+
+        :param condition: optional, array of bool, default None. If not None, array telling which agent can
+                          change position.
+        :param position_attribute: optional, string, default 'position'
+        """
+        if self.df_population.nb_rows == 0:
+            return
+        if condition is not None:
+            rand = np.random.uniform(0, 1, (condition.sum(),))
+            movement_change_position_condition(self.df_population[position_attribute], condition, rand,
+                                               self.graph.connections, self.graph.weights)
+        else:
+            rand = np.random.uniform(0, 1, self.df_population.nb_rows)
+            movement_change_position(self.df_population[position_attribute], rand,
+                                     self.graph.connections, self.graph.weights)
+
 class TerritorialMovementWithoutResistance:
     """
     Add graph based movements abilities to the agents. Agents have both a territory and a position, which can be

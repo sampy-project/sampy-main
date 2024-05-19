@@ -140,11 +140,11 @@ class AttributesFrom2DArraysSquareGrids:
 
         self.df_attributes[attr_name] = topology_convert_2d_array_to_1d_array(array_2d, self._array_optimized_flat)
 
-    def update_attribute_from_2d_array(self, attr_name, array_2d):
+    def create_or_update_attribute_from_2d_array(self, attr_name, array_2d):
         """
-        Update an attribute based on a 2D array input. Note that this method calls `create_attribute_from_2d_array`
+        Create of update an attribute based on a 2D array input. Note that this method calls `create_attribute_from_2d_array`
         in the background. This method only exists for readability of the scripts (it would seem weird to update 
-        and attribute using a methode called `create_...`). This small naming problem will be solved in a later
+        and attribute using a methode called `create_attribute...`). This small naming problem will be solved in a later
         version.
 
         :param attr_name: string, name of the attribute

@@ -1,5 +1,5 @@
 import numpy as np
-from .jit_compiled_functions import compute_sin_attr_with_condition
+from .jit_compiled_functions import compute_sin_attr_with_condition, topology_convert_2d_array_to_1d_array
 from ..pandas_xs.pandas_xs import DataFrameXS
 
 
@@ -132,9 +132,22 @@ class AttributesFrom2DArraysSquareGrids:
         if array_2d.shape != self.shape:
             raise ValueError('Shapes do not match. Graph of shape ' + str(self.shape) +
                              ' while array of shape ' + str(array_2d.shape) + '.')
-        arr_attr = np.full((self.number_vertices,), array_2d[0][0])
-        for i in range(array_2d.shape[0]):
-            for j in range(array_2d.shape[1]):
-                arr_attr[self.dict_cell_id_to_ind[(i, j)]] = array_2d[i][j]
+        
+        if self._array_optimized_flat is None:
+            self._array_optimized_flat = np.full(self.shape, 0)
+            for key, val in self.dict_cell_id_to_ind.items():
+                self._array_optimized_flat[key[0], key[1]] = val
 
-        self.df_attributes[attr_name] = arr_attr
+        self.df_attributes[attr_name] = topology_convert_2d_array_to_1d_array(array_2d, self._array_optimized_flat)
+
+    def update_attribute_from_2d_array(self, attr_name, array_2d):
+        """
+        Update an attribute based on a 2D array input. Note that this method calls `create_attribute_from_2d_array`
+        in the background. This method only exists for readability of the scripts (it would seem weird to update 
+        and attribute using a methode called `create_...`). This small naming problem will be solved in a later
+        version.
+
+        :param attr_name: string, name of the attribute
+        :param array_2d: 2d array
+        """
+        self.create_attribute_from_2d_array(attr_name, array_2d)

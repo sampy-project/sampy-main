@@ -32,9 +32,9 @@ class BasicMammal(BaseAgingAgent,
         :param age: int, age of the new agents.
         """
         for id_pos in list_positions:
-            if id_pos not in self.graph.dict_id_to_ind:
+            if id_pos not in self.graph.dict_cell_id_to_ind:
                 raise ValueError(str(id_pos) + " is not a valid position id.")
-        positions_id = np.array([self.graph.dict_id_to_ind[id_pos] for id_pos in list_positions])
+        positions_id = np.array([self.graph.dict_cell_id_to_ind[id_pos] for id_pos in list_positions])
         arr_pos = np.repeat(positions_id, 2 * nb_couples)
         arr_territory = np.copy(arr_pos)
         arr_age = np.full((2 * nb_couples * len(list_positions),), age, dtype=int)

@@ -271,12 +271,13 @@ class OrientedHexagonalGridOnSquare(BaseTopology):
     """
     Create an hexagonal grid on a square. The shape of the 5 x 3 grid is as follows:
 
-       *   *       *   *       *   *
-     *       *   *       *   *       *
-       *   *       *   *       *   *
-     *       *   *       *   *       *
-       *   *       *   *       *   *
-     *       *   *       *   *       *
+             *   *       *   *
+       *   * (1,2) *   * (3,2) *   *
+     * (0,2) *   * (2,2) *   * (4,2) *
+       *   * (1,1) *   * (3,1) *   *
+     * (0,1) *   * (2,1) *   * (4,1) *
+       *   * (1,0) *   * (3,0) *   *
+     * (0,0) *   * (2,0) *   * (4,0) *
        *   *       *   *       *   *
 
     """

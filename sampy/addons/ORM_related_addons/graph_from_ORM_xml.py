@@ -1,5 +1,7 @@
-from ...graph.topology import BaseTopology
+from ...graph.topology import (BaseTopology,
+                               OrientedHexagonalGridOnSquare)
 from ...graph.vertex_attributes import BaseVertexAttributes, PeriodicAttributes
+from ...graph.spatial_2d import SpatialComponentsTwoDimensionalOrientedHexagons
 from ...utils.decorators import sampy_class
 import xml.etree.ElementTree as ET
 import numpy as np
@@ -141,3 +143,40 @@ class GraphFromORMxml(BaseTopology,
         :return: a list of string
         """
         return [super_cell_name for super_cell_name in self.dict_super_cell]
+
+
+class ORMLikeResistanceToMovement:
+    """
+    todo
+    """
+    def __init__(self, **kwargs):
+        if not hasattr(self, 'connections'):
+            raise AttributeError("The graph does not have a connections array.")
+        if self.connections.shape[1] != 6:
+            raise ValueError("The graph is not an hexagonal based grid.")
+
+    def define_movement_resistance(self):
+        """
+        Set in_res and out_res to 0. for all vertices.
+        """
+        self.df_attributes['in_res'] = 0.
+        self.df_attributes['out_res'] = 0.
+        self.prob_successful_move = np.full(self.connections.shape, 1., dtype=float)
+
+    def advanced_define_movement_resistance(self, in_res="in_res", out_res="out_res"):
+        """
+        Not implemented yet.
+        """
+        raise NotImplementedError("This method is not yet defined.")
+
+
+@sampy_class
+class ORMLikeHexGrid(OrientedHexagonalGridOnSquare,
+                     BaseVertexAttributes,
+                     SpatialComponentsTwoDimensionalOrientedHexagons,
+                     ORMLikeResistanceToMovement):
+    """
+    todo
+    """
+    def __init__(self, nb_hex_x_axis=None, nb_hex_y_axis=None, **kwargs):
+        pass

@@ -46,9 +46,9 @@ def extract_deviation_angles(list_lat, list_lon, input_in_radians=False):
 
     # we turn those lat lon into 3D coordinates (on a sphere of unit radius, since it
     # does not impact the deviation angles).
-    arr_x = np.cos(np.radians(lats)) * np.cos(np.radians(lons))
-    arr_y = np.cos(np.radians(lats)) * np.sin(np.radians(lons))
-    arr_z = np.sin(np.radians(lats))
+    arr_x = np.cos(lats) * np.cos(lons)
+    arr_y = np.cos(lats) * np.sin(lons)
+    arr_z = np.sin(lats)
 
     # we swap to float64 to improve precision in the following computations
     arr_x = arr_x.astype(np.float64)
@@ -73,3 +73,48 @@ def extract_deviation_angles(list_lat, list_lon, input_in_radians=False):
         deviation_angles.append(sign * angle)
 
     return np.array(deviation_angles)
+
+
+def extract_spherical_distances(list_lat, list_lon, input_in_radians=False,
+                                radius=6_371):
+    """
+    todo
+    """
+    # first we convert inputs to np array and check that they makes sense
+    lats = np.array(list_lat)
+    lons = np.array(list_lon)
+    if lats.shape != lons.shape:
+        raise ValueError("Parameters list_lat and list_lon should have same length.")
+    if len(lats.shape) != 1:
+        raise ValueError("Parameters list_lat and list_lon should be 1D lists or arrays.")
+    if lats.shape[0] < 1:
+        raise ValueError("At least two positions are needed to compute a distance.")
+    
+    # we convert the inputs into radians if needed
+    if not input_in_radians:
+        lats = np.radians(lats)
+        lons = np.radians(lons)
+
+    # we turn those lat lon into 3D coordinates (on a sphere of unit radius).
+    arr_x = np.cos(lats) * np.cos(lons)
+    arr_y = np.cos(lats) * np.sin(lons)
+    arr_z = np.sin(lats)
+
+    # we swap to float64 to improve precision in the following computations
+    arr_x = arr_x.astype(np.float64)
+    arr_y = arr_y.astype(np.float64)
+    arr_z = arr_z.astype(np.float64)
+
+    # we compute the spherical distance, using the formula :
+    # 
+    # d = radius * arctan( |n1 x n2| / (n1.n2))
+    # 
+    # here, n1 and n2 are unit 1 position vectors on the sphere. 
+    distances = []
+    for i in range(arr_x.shape[0] - 1):
+        start_pos =  np.array([arr_x[i],     arr_y[i],     arr_z[i]])
+        end_pos =    np.array([arr_x[i + 1], arr_y[i + 1], arr_z[i + 1]])
+
+        distances.append( radius * np.arctan(np.linalg.norm(np.cross(start_pos, end_pos))/np.dot(start_pos, end_pos))) 
+
+    return distances

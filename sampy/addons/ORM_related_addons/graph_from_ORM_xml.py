@@ -1,5 +1,7 @@
-from ...graph.topology import BaseTopology
+from ...graph.topology import (BaseTopology,
+                               OrientedHexagonalGridOnSquare)
 from ...graph.vertex_attributes import BaseVertexAttributes, PeriodicAttributes
+from ...graph.spatial_2d import SpatialComponentsTwoDimensionalOrientedHexagons
 from ...utils.decorators import sampy_class
 import xml.etree.ElementTree as ET
 import numpy as np
@@ -141,3 +143,79 @@ class GraphFromORMxml(BaseTopology,
         :return: a list of string
         """
         return [super_cell_name for super_cell_name in self.dict_super_cell]
+
+
+class ORMLikeResistanceToMovement:
+    """
+    Building bloc designed to add resistance to movement to other oriented hexagonal based grid.
+    This is needed by ORM-like agents movement methods.
+
+    Provides 2 methods (one basic, one advanced) creating a 2D array attribute called 
+    prob_successful_movement which summarize the inbound and outbound resistance contribution
+    on each edge of the graph.
+    """
+    def __init__(self, **kwargs):
+        if not hasattr(self, 'connections'):
+            raise AttributeError("The graph does not have a connections array.")
+        if self.connections.shape[1] != 6:
+            raise ValueError("The graph is not an hexagonal based grid.")
+        
+        self.prob_successful_move = np.full(self.connections.shape, -1., dtype=float)
+
+    def define_movement_resistance(self):
+        """
+        Set in_res and out_res to 0. for all vertices. Compute the array prob_successful_move
+        accordingly.
+        """
+        self.df_attributes['in_res'] = 0.
+        self.df_attributes['out_res'] = 0.
+        self.prob_successful_move = np.full(self.connections.shape, 1., dtype=float)
+
+    def advanced_define_movement_resistance(self, in_res_attribute="in_res", 
+                                            out_res_attribute="out_res"):
+        """
+        Use graph attributes as inbound and outbound resistance to compute the array
+        prob_successful_move used by ORM-like agents.
+
+        :param in_res_attribute: optional, string, default 'in_res'. Name of the graph attribute
+                                 corresponding to in-bound resistance.
+        :param out_res_attribute: optional, string, default 'out_res'. Name of the graph attribute
+                                  corresponding to out-bound resistance.
+        """
+        for i in range(self.connections.shape[0]):
+            for j in range(6):
+                if self.connections[i][j] >= -1:
+                    self.prob_successful_move[i][j] = (1. - self.df_attributes[out_res_attribute][i]) * \
+                                                      (1. - self.df_attributes[in_res_attribute][self.connections[i][j]])
+        
+
+
+@sampy_class
+class ORMLikeHexGrid(OrientedHexagonalGridOnSquare,
+                     BaseVertexAttributes,
+                     SpatialComponentsTwoDimensionalOrientedHexagons,
+                     ORMLikeResistanceToMovement):
+    """
+    Create an hexagonal grid of rectangular shape. For instance, the shape of 
+    the 5 x 3 grid is as follows:
+
+
+             *   *       *   *
+       *   * (1,2) *   * (3,2) *   *
+     * (0,2) *   * (2,2) *   * (4,2) *
+       *   * (1,1) *   * (3,1) *   *
+     * (0,1) *   * (2,1) *   * (4,1) *
+       *   * (1,0) *   * (3,0) *   *
+     * (0,0) *   * (2,0) *   * (4,0) *
+       *   *       *   *       *   *
+
+       
+    Movement resistance need to be added after the graph creation, using either one of the
+    two methods 'define_movement_resistance' and 'advanced_define_movement_resistance
+    
+    Mandatory kwargs:
+        nb_hex_x_axis: integer, number of hexagons on the x axis.
+        nb_hex_y_axis: integer, number of hexagons on the y axis.
+    """
+    def __init__(self, nb_hex_x_axis=None, nb_hex_y_axis=None, **kwargs):
+        pass

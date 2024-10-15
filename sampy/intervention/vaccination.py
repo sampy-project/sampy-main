@@ -42,7 +42,9 @@ class VaccinationSingleSpeciesDiseaseFixedDuration:
         self.target_species.df_population['imm_' + self.disease.disease_name] = \
             self.target_species.df_population['imm_' + self.disease.disease_name] * not_arr_lose_vaccine
 
-    def apply_vaccine_from_array(self, array_vaccine_level, condition=None, position_attribute='position'):
+    def apply_vaccine_from_array(self, array_vaccine_level, 
+                                 condition=None, position_attribute='position',
+                                 exclude_non_susceptible=True):
         """
         Apply vaccine to the agents based on the 1D array 'array_vaccine_level'. array_vaccine_level[i] is the
         probability for an agent on the vertex of index i to get vaccinated.
@@ -53,9 +55,18 @@ class VaccinationSingleSpeciesDiseaseFixedDuration:
         :param array_vaccine_level: 1D array of float. Floats between 0 and 1.
         :param condition: optional, 1D array of bool, default None.
         :param position_attribute: optional, string, default 'position'.
+        :param exclude_non_susceptible: optional, bool, default True. If True, all agents that are 
+                                        not susceptible (i.e. infected, contagious or immuned) cannot
+                                        be vaccinated.
         """
         if condition is None:
             condition = np.full((self.target_species.df_population.nb_rows,), True, dtype=np.bool_)
+
+        if exclude_non_susceptible:
+            non_susceptible = self.target_species.df_population['inf_' + self.disease.disease_name] & \
+                              self.target_species.df_population['con_' + self.disease.disease_name] & \
+                              self.target_species.df_population['imm_' + self.disease.disease_name]
+            condition = condition & ~non_susceptible
 
         rand = np.random.uniform(0, 1, (condition.sum(),))
 
@@ -70,7 +81,9 @@ class VaccinationSingleSpeciesDiseaseFixedDuration:
         self.target_species.df_population['inf_' + self.disease.disease_name] *= not_newly_vaccinated
         self.target_species.df_population['con_' + self.disease.disease_name] *= not_newly_vaccinated
 
-    def apply_vaccine_from_dict(self, graph, dict_vertex_id_to_level, condition=None, position_attribute='position'):
+    def apply_vaccine_from_dict(self, graph, dict_vertex_id_to_level, 
+                                condition=None, position_attribute='position',
+                                exclude_non_susceptible=True):
         """
         same as apply_vaccine_from_array, but the 1D array is replaced by a dictionary whose keys are vertices ID and
         values is the vaccination level on each cell.
@@ -79,9 +92,15 @@ class VaccinationSingleSpeciesDiseaseFixedDuration:
         :param dict_vertex_id_to_level: dictionnary-like object with vaccine level
         :param condition: optional, 1D array of bool, default None.
         :param position_attribute: optional, string, default 'position'.
+        :param exclude_non_susceptible: optional, bool, default True. If True, all agents that are 
+                                        not susceptible (i.e. infected, contagious or immuned) cannot
+                                        be vaccinated.
         """
         array_vac_level = np.full((graph.number_vertices,), 0., dtype=float)
         for id_vertex, level in dict_vertex_id_to_level.items():
             array_vac_level[graph.dict_cell_id_to_ind[id_vertex]] = level
 
-        self.apply_vaccine_from_array(array_vac_level, condition=condition, position_attribute=position_attribute)
+        self.apply_vaccine_from_array(array_vac_level, 
+                                      condition=condition, 
+                                      position_attribute=position_attribute,
+                                      exclude_non_susceptible=exclude_non_susceptible)

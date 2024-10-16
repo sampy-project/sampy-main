@@ -285,6 +285,14 @@ class SeasonalMortality:
         for _ in range(nb_timestep):
             self.list_proportions_by_timestep.append(prop_death)
 
+
+    def initialize_seasonal_mortality_custom_proportions(self, list_of_proportions):
+        """
+        TODO
+        """
+        list_of_proportions_copy = list_of_proportions.copy()
+        self.list_proportions_by_timestep = list_of_proportions_copy
+
     def deal_with_seasonal_mortality(self):
         """
         TODO

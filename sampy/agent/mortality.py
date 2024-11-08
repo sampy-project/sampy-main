@@ -1,3 +1,4 @@
+import math
 import numpy as np
 from .jit_compiled_functions import *
 from ..pandas_xs.pandas_xs import DataFrameXS
@@ -264,7 +265,7 @@ class KillPercentagePop:
         """
         rand = np.random.uniform(0, 1, (self.df_population.nb_rows,)) > proportion_death
         if condition is not None:
-            rand = rand & condition
+            rand = rand & ~condition
         self.df_population = self.df_population[rand]
 
 
@@ -285,12 +286,11 @@ class SeasonalMortality:
         for _ in range(nb_timestep):
             self.list_proportions_by_timestep.append(prop_death)
 
-
-    def initialize_seasonal_mortality_custom_proportions(self, list_of_proportions):
+    def initialize_seasonal_mortality_custom_proportions(self, list_of_proportions_death):
         """
         TODO
         """
-        list_of_proportions_copy = list_of_proportions.copy()
+        list_of_proportions_copy = list_of_proportions_death.copy()
         self.list_proportions_by_timestep = list_of_proportions_copy
 
     def deal_with_seasonal_mortality(self):

@@ -1,6 +1,8 @@
 import numpy as np
 import copy
-from .jit_compiled_functions import dataframe_xs_check_arr_in_col, dataframe_xs_check_arr_in_col_conditional
+from .jit_compiled_functions import (dataframe_xs_check_arr_in_col, 
+                                     dataframe_xs_check_arr_in_col_conditional,
+                                     dataframe_xs_check_col_in_arr)
 import pandas as pd
 
 
@@ -368,6 +370,31 @@ class DataFrameXS:
             return dataframe_xs_check_arr_in_col(input_arr, self[name_col])
         else:
             return dataframe_xs_check_arr_in_col_conditional(input_arr, self[name_col], condition)
+
+
+    def _sampy_debug_check_col_in_arr(self, name_col, input_arr):
+        if not isinstance(input_arr, np.ndarray):
+            raise ValueError('Input array is not a numpy ndarray.')
+        if len(input_arr.shape) != 1:
+            raise ValueError('Input array is not one dimensional.')
+        if input_arr.shape[0] == 0:
+            raise ValueError('Input array is empty.')
+        if str(input_arr.dtype) != str(self[name_col].dtype):
+            raise ValueError("The input array (" + str(input_arr.dtype) + ") is not of the same type as the " +
+                             "selected column (" + str(self[name_col].dtype) + ").")
+        
+
+    def check_col_in_arr(self, name_col, input_arr):
+        """
+        Check which elements of the selected column are in the input array.
+
+        :param input_arr: 1D numpy array.
+        :param name_col: string, name of the column
+
+        :return: 1D boolean array of shape (nb_rows,).
+        """
+        return dataframe_xs_check_col_in_arr(self[name_col], input_arr)
+
 
     def _sampy_debug_change_type(self, col_name, str_type):
         if not isinstance(str_type, str):

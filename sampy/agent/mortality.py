@@ -1,3 +1,4 @@
+import math
 import numpy as np
 from .jit_compiled_functions import *
 from ..pandas_xs.pandas_xs import DataFrameXS
@@ -249,11 +250,11 @@ class KillPercentagePop:
     def __init__(self, **kwargs):
         pass
 
-    def _sampy_debug_kill_proportion_of_population(self, proportion, condition=None):
+    def _sampy_debug_kill_proportion_of_population(self, proportion_death, condition=None):
         if condition is not None:
             check_input_array(condition, 'condition', 'bool', shape=(self.df_population.nb_rows,))
 
-    def kill_proportion_of_population(self, proportion, condition=None):
+    def kill_proportion_of_population(self, proportion_death, condition=None):
         """
         For each agent, a random uniform number between 0 and 1 is sampled, and each agent for which this number is
         smaller than the argument 'proportion' is killed. Note that the user can use the kwarg 'condition' to
@@ -262,7 +263,45 @@ class KillPercentagePop:
         :param proportion: float between 0 and 1.
         :param condition: optional, 1D array of bool, default None.
         """
-        rand = np.random.uniform(0, 1, (self.df_population.nb_rows,)) > proportion
+        rand = np.random.uniform(0, 1, (self.df_population.nb_rows,)) > proportion_death
         if condition is not None:
-            rand = rand & condition
+            rand = rand & ~condition
         self.df_population = self.df_population[rand]
+
+
+class SeasonalMortality:
+
+    def __init__(self, **kwargs):
+        self.list_proportions_by_timestep = []
+        self.on_ticker.append('deal_with_seasonal_mortality')
+        pass
+
+    def initialize_seasonal_mortality_uniform(self, tot_proportion_death, nb_timestep):
+        """
+        TODO
+        """
+
+        self.list_proportions_by_timestep = []
+        prop_death = 1 - ((1 - tot_proportion_death)**(1 / nb_timestep))
+        for _ in range(nb_timestep):
+            self.list_proportions_by_timestep.append(prop_death)
+
+    def initialize_seasonal_mortality_custom_proportions(self, list_of_proportions_death):
+        """
+        TODO
+        """
+        list_of_proportions_copy = list_of_proportions_death.copy()
+        self.list_proportions_by_timestep = list_of_proportions_copy
+
+    def deal_with_seasonal_mortality(self):
+        """
+        TODO
+        """
+        if not self.list_proportions_by_timestep:
+            return
+
+        list_props_death = self.list_proportions_by_timestep
+        p_death_timestep = list_props_death[0]
+        rand = np.random.uniform(0, 1, (self.df_population.nb_rows,)) > p_death_timestep
+        self.df_population = self.df_population[rand]
+        del self.list_proportions_by_timestep[0]

@@ -1,6 +1,6 @@
 import numpy as np
 from .base import BaseAgingAgent
-from .mortality import NaturalMortalityOrmMethodology, OffspringDependantOnParents
+from .mortality import NaturalMortalityOrmMethodology, OffspringDependantOnParents, SeasonalMortality, KillPercentagePop
 from .reproduction import (FindMateMonogamous, 
                            FindMatePolygamous, 
                            OffspringCreationWithCustomProb,
@@ -16,7 +16,9 @@ class BasicMammal(BaseAgingAgent,
                   OffspringDependantOnParents,
                   FindMateMonogamous,
                   OffspringCreationWithCustomProb,
-                  TerritorialMovementWithoutResistance):
+                  TerritorialMovementWithoutResistance,
+                  SeasonalMortality,
+                  KillPercentagePop):
     """
     Agent that represents a basic territorial mammal. This agent is Monogamous.
     """
@@ -51,7 +53,9 @@ class BasicMammalPolygamous(BaseAgingAgent,
                             OffspringDependantOnParents,
                             FindMatePolygamous,
                             OffspringCreationWithCustomProb,
-                            TerritorialMovementWithoutResistance):
+                            TerritorialMovementWithoutResistance,
+                            SeasonalMortality,
+                            KillPercentagePop):
     """
     Agent that represents a basic territorial mammal. This agent is Polygamous (in the sense that a given male can
     mate with several females during a single call of the method 'find_random_mate_on_position').
@@ -67,7 +71,9 @@ class BasicMammalWithSCRW(BaseAgingAgent,
                           FindMateMonogamous,
                           OffspringCreationWithCustomProb,
                           TerritorialMovementWithoutResistance,
-                          SphericalRandomWalk):
+                          SphericalRandomWalk,
+                          SeasonalMortality,
+                          KillPercentagePop):
     """
     Agent that represents a basic territorial mammal able to perform spherical correlated random walk. 
     This agent is Monogamous.
@@ -86,7 +92,9 @@ class BasicMammalWithMarkersAndSCRW(BaseAgingAgent,
                                     OffspringDependantOnParents,
                                     ReproductionMonogamousWithMarker,
                                     TerritorialMovementWithoutResistance,
-                                    SphericalRandomWalk):
+                                    SphericalRandomWalk,
+                                    SeasonalMortality,
+                                    KillPercentagePop):
     """
     Agent that represents a basic territorial mammal able to perform spherical correlated random walk. 
     This agent is Monogamous. This agent has markers.
@@ -97,9 +105,6 @@ class BasicMammalWithMarkersAndSCRW(BaseAgingAgent,
     """
     def __init__(self, **kwargs):
         pass
-
-
-
 
 
 

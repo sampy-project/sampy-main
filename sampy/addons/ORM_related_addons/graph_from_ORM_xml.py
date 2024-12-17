@@ -199,6 +199,7 @@ class ORMLikeHexGrid(OrientedHexagonalGridOnSquare,
     Create an hexagonal grid of rectangular shape. For instance, the shape of 
     the 5 x 3 grid is as follows:
 
+
              *   *       *   *
        *   * (1,2) *   * (3,2) *   *
      * (0,2) *   * (2,2) *   * (4,2) *
@@ -208,6 +209,7 @@ class ORMLikeHexGrid(OrientedHexagonalGridOnSquare,
      * (0,0) *   * (2,0) *   * (4,0) *
        *   *       *   *       *   *
 
+       
     Movement resistance need to be added after the graph creation, using either one of the
     two methods 'define_movement_resistance' and 'advanced_define_movement_resistance
     

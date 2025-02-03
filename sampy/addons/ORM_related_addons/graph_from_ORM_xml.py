@@ -5,7 +5,7 @@ from ...graph.spatial_2d import SpatialComponentsTwoDimensionalOrientedHexagons
 from ...utils.decorators import sampy_class
 import xml.etree.ElementTree as ET
 import numpy as np
-
+                    
 
 @sampy_class
 class GraphFromORMxml(BaseTopology,
@@ -143,7 +143,24 @@ class GraphFromORMxml(BaseTopology,
         :return: a list of string
         """
         return [super_cell_name for super_cell_name in self.dict_super_cell]
+    
+    def recompute_movement_resistance(self, in_res_attribute="in_res", 
+                                            out_res_attribute="out_res"):
+        """
+        Use graph attributes as inbound and outbound resistance to compute the array
+        prob_successful_move used by ORM-like agents.
 
+        :param in_res_attribute: optional, string, default 'in_res'. Name of the graph attribute
+                                 corresponding to in-bound resistance.
+        :param out_res_attribute: optional, string, default 'out_res'. Name of the graph attribute
+                                  corresponding to out-bound resistance.
+        """
+        for i in range(self.connections.shape[0]):
+            for j in range(6):
+                if self.connections[i][j] >= -1:
+                    self.prob_successful_move[i][j] = (1. - self.df_attributes[out_res_attribute][i]) * \
+                                                      (1. - self.df_attributes[in_res_attribute][self.connections[i][j]])
+        
 
 class ORMLikeResistanceToMovement:
     """
@@ -187,7 +204,6 @@ class ORMLikeResistanceToMovement:
                 if self.connections[i][j] >= -1:
                     self.prob_successful_move[i][j] = (1. - self.df_attributes[out_res_attribute][i]) * \
                                                       (1. - self.df_attributes[in_res_attribute][self.connections[i][j]])
-        
 
 
 @sampy_class

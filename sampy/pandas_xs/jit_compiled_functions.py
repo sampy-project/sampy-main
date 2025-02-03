@@ -22,3 +22,13 @@ def dataframe_xs_check_arr_in_col_conditional(input_arr, column, condition):
                 rv[i] = True
     return rv
 
+
+@nb.njit
+def dataframe_xs_check_col_in_arr(column, input_arr):
+    rv = np.full(column.shape, False, dtype=np.bool_)
+    set_arr = set(input_arr)
+    for i in range(column.shape[0]):
+        if column[i] in set_arr:
+            rv[i] = True
+    return rv
+

@@ -47,7 +47,8 @@ class NaturalMortalityOrmMethodology:
                                                    gender_attribute='gender',
                                                    age_attribute='age',
                                                    position_attribute='position',
-                                                   k_factor_attribute='K'):
+                                                   k_factor_attribute='K',
+                                                   kill_too_old=False):
         if self.df_population.nb_rows == 0:
             return
 
@@ -104,7 +105,8 @@ class NaturalMortalityOrmMethodology:
                                       age_attribute='age',
                                       position_attribute='position',
                                       k_factor_attribute='K',
-                                      return_death_dataframe=False
+                                      return_death_dataframe=False,
+                                      kill_too_old=False
                                       ):
         """
         Kill agents using ORM methodology. I.E. the probability for a given agent to die is given by the formula:
@@ -146,12 +148,31 @@ class NaturalMortalityOrmMethodology:
                                    df_attribute DataFrame.
         :param return_death_dataframe: optional, boolean, default False. If True, returns a DataFrameXS containing all
                                        the agents killed during this method call
+        :param kill_too_old: optional, boolean, default False. If True, the method kills all the agents that are too old 
+                                    based on the size of the 2 arrays array_death_proba_male and array_death_proba_female
 
         :return: if return_death_dataframe is set to True, returns a DataFrameXS containing the agents killed during
                  this method call.
         """
         if self.df_population.nb_rows == 0:
             return
+        
+        if kill_too_old:
+            arr_survive_female = self.df_population[(~self.get_females()) | (self.df_population[age_attribute] < array_death_proba_female.shape[0])]
+            arr_survive_male = self.df_population[(~self.get_males()) | (self.df_population[age_attribute] < array_death_proba_male.shape[0])]
+            arr_survive = arr_survive_female | arr_survive_male
+
+            if condition is not None:
+                arr_survive = arr_survive | (~condition)
+
+            self.df_population = self.df_population[arr_survive]
+
+            if condition is not None:
+                condition = condition[arr_survive]
+
+            if condition_count is not None:
+                condition_count = condition_count[arr_survive]
+
         # shuffle the population dataframe if required
         if shuffle:
             used_permutation = self.df_population.scramble(permutation=permutation_shuffle, return_permutation=True)

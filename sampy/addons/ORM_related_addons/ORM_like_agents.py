@@ -1,5 +1,5 @@
 from ...agent.base import BaseAgingAgent
-from ...agent.mortality import NaturalMortalityOrmMethodology, OffspringDependantOnParents
+from ...agent.mortality import NaturalMortalityOrmMethodology, OffspringDependantOnParents, MortalityKillTooOld
 from ...agent.reproduction import (OffspringCreationWithCustomProb,
                                       FindMateMonogamous,
                                       FindMatePolygamous)
@@ -346,6 +346,7 @@ class ExperimentalDensityDependentMortality:
 
 @sampy_class
 class ORMLikeAgent(BaseAgingAgent,
+                   MortalityKillTooOld,
                    NaturalMortalityOrmMethodology,
                    OffspringDependantOnParents,
                    FindMateMonogamous,
@@ -365,6 +366,7 @@ class ORMLikeAgent(BaseAgingAgent,
 
 @sampy_class
 class ORMMongooses(BaseAgingAgent,
+                   MortalityKillTooOld,
                    NaturalMortalityOrmMethodology,
                    OffspringDependantOnParents,
                    FindMatePolygamous,

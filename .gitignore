@@ -10,3 +10,6 @@ test_chap3_*
 script_project_*
 test_extract_info.py
 script_test_alice_*
+.coverage
+htmlcov/*
+htmlcov

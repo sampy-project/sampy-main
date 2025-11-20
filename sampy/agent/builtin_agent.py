@@ -1,6 +1,6 @@
 import numpy as np
 from .base import BaseAgingAgent
-from .mortality import NaturalMortalityOrmMethodology, OffspringDependantOnParents, SeasonalMortality, KillPercentagePop
+from .mortality import NaturalMortalityOrmMethodology, OffspringDependantOnParents, SeasonalMortality, KillPercentagePop, MortalityKillTooOld
 from .reproduction import (FindMateMonogamous, 
                            FindMatePolygamous, 
                            OffspringCreationWithCustomProb,
@@ -12,6 +12,7 @@ from ..utils.decorators import sampy_class
 
 @sampy_class
 class BasicMammal(BaseAgingAgent,
+                  MortalityKillTooOld,
                   NaturalMortalityOrmMethodology,
                   OffspringDependantOnParents,
                   FindMateMonogamous,
@@ -49,6 +50,7 @@ class BasicMammal(BaseAgingAgent,
 
 @sampy_class
 class BasicMammalPolygamous(BaseAgingAgent,
+                            MortalityKillTooOld,
                             NaturalMortalityOrmMethodology,
                             OffspringDependantOnParents,
                             FindMatePolygamous,
@@ -66,6 +68,7 @@ class BasicMammalPolygamous(BaseAgingAgent,
 
 @sampy_class
 class BasicMammalWithSCRW(BaseAgingAgent,
+                          MortalityKillTooOld,
                           NaturalMortalityOrmMethodology,
                           OffspringDependantOnParents,
                           FindMateMonogamous,
@@ -88,6 +91,7 @@ class BasicMammalWithSCRW(BaseAgingAgent,
 
 @sampy_class
 class BasicMammalWithMarkersAndSCRW(BaseAgingAgent,
+                                    MortalityKillTooOld,
                                     NaturalMortalityOrmMethodology,
                                     OffspringDependantOnParents,
                                     ReproductionMonogamousWithMarker,

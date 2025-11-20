@@ -8,6 +8,28 @@ from ..utils.errors_shortcut import (check_col_exists_good_type,
                                      check_if_gender_array)
 
 
+class MortalityKillTooOld:
+    """
+    This class provides a method to eliminate agents that reached a user provided limit age.
+    """
+    def __init__(self, **kwargs):
+        if not hasattr(self, 'df_population'):
+            self.df_population = DataFrameXS()
+
+    def kill_too_old(self, limit_age, age_attribute='age', condition=None):
+        """
+        Kill agents whose age is greater or equal to the specified limit age.
+
+        :param limit_age: integer. Any agent older than this parameter will be killed.
+        :param age_attribute: optional, string, default 'age'. Name of the age attribute in the population dataframe.
+        :param condition: optional, 1D array of bool, default None. Array telling which agent are susceptible to die.
+        """
+        if condition is None:
+            self.df_population = self.df_population[self.df_population[age_attribute] < limit_age]
+        else:
+            self.df_population = self.df_population[(~condition) | (self.df_population[age_attribute] < limit_age)]
+
+
 class NaturalMortalityOrmMethodology:
     """
     This class provides methods to modelize natural mortality.
@@ -193,15 +215,6 @@ class NaturalMortalityOrmMethodology:
         else:
             self.df_population = self.df_population[arr_survive]
 
-    def kill_too_old(self, limit_age, age_attribute='age'):
-        """
-        Kill agents whose age is greater or equal to the specified limit age.
-
-        :param limit_age: integer. Any agent older than this parameter will be killed.
-        :param age_attribute: optional, string, default 'age'. Name of the age attribute in the population dataframe.
-        """
-        self.df_population = self.df_population[self.df_population[age_attribute] < limit_age]
-
 
 class OffspringDependantOnParents:
     """
@@ -305,3 +318,50 @@ class SeasonalMortality:
         rand = np.random.uniform(0, 1, (self.df_population.nb_rows,)) > p_death_timestep
         self.df_population = self.df_population[rand]
         del self.list_proportions_by_timestep[0]
+
+
+    def initialize_seasonal_mortality_normal(self, tot_proportion_death, nb_timestep):
+        """
+        TODO
+        """
+
+        if nb_timestep <= 2:
+            raise ValueError("""Value of nb_timestep is smaller than 3. 
+                             Consider using kill_proportion_of_population or initialize_seasonal_mortality_uniform.""")
+        
+        list_props_death_by_timestep = []
+
+        def curve(x, y):
+            return (1 / (y * np.sqrt(2 * np.pi))) * math.exp((-(x) ** 2) / 2 * (y * 2))
+        
+        x_vals = np.linspace(-2, 2, nb_timestep)
+
+        list_props_death_by_timestep = [curve(x, 1) for x in x_vals]
+
+        def func_for_newt_algo(x, list_qi, p):
+            rv = 1-x * list_qi[0]
+            for q in list_qi[1:]:
+                rv = rv * (1 - x*q)
+            rv = rv + p - 1
+            return rv
+
+        def newt_quotient(x, list_qi, p):
+            numerator = 1 + (p - 1) / (func_for_newt_algo(x, list_qi, p) + 1 - p)
+            denom = 0
+            for q in list_qi:
+                denom = denom - q / (1 - x * q)
+            return numerator / denom
+        
+        nb_iter = 10
+        start_value = 0.5
+        list_scaling_factors = [start_value]
+        for _ in range(nb_iter):
+            list_scaling_factors.append(list_scaling_factors[-1] - newt_quotient(list_scaling_factors[-1], list_props_death_by_timestep, tot_proportion_death))
+
+        scaling_factor = list_scaling_factors[-1]
+
+        list_props_death_by_timestep_normalized = []
+        for value in list_props_death_by_timestep:
+            list_props_death_by_timestep_normalized.append(scaling_factor * value)
+
+        self.list_proportions_by_timestep = list_props_death_by_timestep_normalized

@@ -1,6 +1,6 @@
 from ...graph.spatial_2d import SpatialComponentsTwoDimensionalOrientedHexagons
 from ...graph.topology import OrientedHexagonalGridOnSquare
-from ...graph.vertex_attributes import BaseVertexAttributes
+from ...graph.vertex_attributes import BaseVertexAttributes, PeriodicAttributes
 from ...utils.decorators import sampy_class
 from .jit_compiled_functions import keep_subgraph_from_array_of_bool_equi_weight
 
@@ -11,7 +11,8 @@ import geojson
 @sampy_class
 class HexGrid(BaseVertexAttributes,
               OrientedHexagonalGridOnSquare,
-              SpatialComponentsTwoDimensionalOrientedHexagons):
+              SpatialComponentsTwoDimensionalOrientedHexagons,
+              PeriodicAttributes):
     """
     This class is a Graph object corresponding to a lattice of hexagons.
     However, it is modified compared to the native SamPy one in order to

@@ -89,7 +89,7 @@ class Proximity3DFromGraph(BaseProximity3dFromGraph,
 
     Here, the set of points is given by a graph whose vertices have 3D coordinates (stored as
     attributes) and radiuses (also stored as attributes). This implies that the indiced 
-    returned by this class when a spacial query is performed are actualy vertices indices.
+    returned by this class when a spatial query is performed are actualy vertices indices.
 
     :param graph: mandatory kwarg, graph object.
     :param radius_attribute: optional, string, default 'radius_each_cell'

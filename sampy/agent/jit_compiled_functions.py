@@ -253,7 +253,7 @@ def movement_change_position_condition(position, condition, rand, connections, w
     for i in range(position.shape[0]):
         if condition[i]:
             for j in range(weights.shape[1]):
-                if rand[counter_rand] <= weights[position[i], j]:
+                if rand[counter_rand] < weights[position[i], j]:
                     position[i] = connections[position[i], j]
                     break
             counter_rand += 1
@@ -263,7 +263,7 @@ def movement_change_position_condition(position, condition, rand, connections, w
 def movement_change_position(position, rand, connections, weights):
     for i in range(position.shape[0]):
         for j in range(weights.shape[1]):
-            if rand[i] <= weights[position[i], j]:
+            if rand[i] < weights[position[i], j]:
                 position[i] = connections[position[i], j]
                 break
 
@@ -275,7 +275,7 @@ def movement_change_territory_and_position_condition(territory, position, condit
         if condition[i]:
             found = False
             for j in range(weights.shape[1]):
-                if rand[counter_rand] <= weights[territory[i]][j]:
+                if rand[counter_rand] < weights[territory[i]][j]:
                     found = True
                     # very important to update position first
                     position[i] = connections[territory[i]][j]
@@ -291,7 +291,7 @@ def movement_change_territory_and_position(territory, position, rand, connection
     for i in range(territory.shape[0]):
         found = False
         for j in range(weights.shape[1]):
-            if rand[i] <= weights[territory[i]][j]:
+            if rand[i] < weights[territory[i]][j]:
                 found = True
                 position[i] = connections[territory[i]][j]
                 territory[i] = connections[territory[i]][j]
@@ -334,7 +334,7 @@ def movement_dispersion_with_varying_nb_of_steps_condition(territory, position, 
             position[i] = territory[i]
             for _ in range(arr_nb_steps[counter_arr_steps]):
                 for j in range(weights.shape[1]):
-                    if rand[counter_rand] <= weights[territory[i]][j]:
+                    if rand[counter_rand] < weights[territory[i]][j]:
                         position[i] = connections[territory[i]][j]
                         territory[i] = connections[territory[i]][j]
                         break
@@ -351,13 +351,85 @@ def movement_dispersion_with_varying_nb_of_steps(territory, position, rand, arr_
         position[i] = territory[i]
         for _ in range(arr_nb_steps[counter_arr_steps]):
             for j in range(weights.shape[1]):
-                if rand[counter_rand] <= weights[territory[i]][j]:
+                if rand[counter_rand] < weights[territory[i]][j]:
                     position[i] = connections[territory[i]][j]
                     territory[i] = connections[territory[i]][j]
                     break
             counter_rand += 1
         counter_arr_steps += 1
 
+
+@nb.njit
+def movement_directional_dispersion_with_varying_nb_of_steps(territory, position, arr_nb_steps, arr_cumul_directional_prob, connections, weights, arr_rand, col_direction):
+    counter_rand = 0
+    for i in range(arr_nb_steps.shape[0]):
+        for j in range(arr_nb_steps[i]):
+            if col_direction[i] == -1:
+                for k in range(weights.shape[1]):
+                    if arr_rand[counter_rand] < weights[territory[i]][k]:
+                        position[i] = connections[territory[i]][k]
+                        territory[i] = connections[territory[i]][k]
+                        col_direction[i] = k
+                        break
+                counter_rand += 1
+            else:
+                for k in range(arr_cumul_directional_prob.shape[0]):
+                    if arr_rand[counter_rand] < arr_cumul_directional_prob[k]:
+                        counter_rand += 1
+                        candidate_position = connections[territory[i]][(col_direction[i]-3 + k) % 6]
+                        if candidate_position == -1:
+                            for l in range(weights.shape[1]):
+                                if arr_rand[counter_rand] < weights[territory[i]][l]:
+                                    position[i] = connections[territory[i]][l]
+                                    territory[i] = connections[territory[i]][l]
+                                    col_direction[i] = l
+                                    break
+                            counter_rand += 1
+                        else:
+                            position[i] = candidate_position
+                            territory[i] = candidate_position
+                            col_direction[i] = (col_direction[i]-3 + k) % 6
+                        break
+
+@nb.njit
+def movement_directional_dispersion_with_varying_nb_of_steps_return_path(territory, position, arr_nb_steps, arr_cumul_directional_prob, connections, weights, arr_rand, col_direction, col_id):
+    counter_rand = 0
+    r_dict = dict()
+    for i in range(arr_nb_steps.shape[0]):
+        if arr_nb_steps[i] > 0:
+            r_dict[col_id[i]] = np.full(arr_nb_steps[i] + 1, -1, dtype=connections.dtype)
+            r_dict[col_id[i]][0] = territory[i]
+        for j in range(arr_nb_steps[i]):
+            if col_direction[i] == -1:
+                for k in range(weights.shape[1]):
+                    if arr_rand[counter_rand] < weights[territory[i]][k]:
+                        r_dict[col_id[i]][j + 1] = connections[territory[i]][k]
+                        position[i] = connections[territory[i]][k]
+                        territory[i] = connections[territory[i]][k]
+                        col_direction[i] = k
+                        break
+                counter_rand += 1
+            else:
+                for k in range(arr_cumul_directional_prob.shape[0]):
+                    if arr_rand[counter_rand] < arr_cumul_directional_prob[k]:
+                        counter_rand += 1
+                        candidate_position = connections[territory[i]][(col_direction[i]-3 + k) % 6]
+                        if candidate_position == -1:
+                            for l in range(weights.shape[1]):
+                                if arr_rand[counter_rand] < weights[territory[i]][l]:
+                                    r_dict[col_id[i]][j + 1] = connections[territory[i]][l]
+                                    position[i] = connections[territory[i]][l]
+                                    territory[i] = connections[territory[i]][l]
+                                    col_direction[i] = l
+                                    break
+                            counter_rand += 1
+                        else:
+                            r_dict[col_id[i]][j + 1] = candidate_position
+                            position[i] = candidate_position
+                            territory[i] = candidate_position
+                            col_direction[i] = (col_direction[i]-3 + k) % 6
+                        break
+    return r_dict
 # ---------------------------------------------------------------------------------------------------------------------
 # spherical random walk section
 

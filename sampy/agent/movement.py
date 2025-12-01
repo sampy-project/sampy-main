@@ -372,3 +372,63 @@ class TerritorialMovementWithResistance:
                                                                    condition,
                                                                    rand, arr_nb_steps, self.graph.connections,
                                                                    self.graph.weights)
+
+
+class TerritorialDirectionalMovementWithoutResistance:
+    """
+    TODO : work only with Oriented hexagonal grid or graphs derived from it
+    """
+    def __init__(self, **kwargs):
+        if not hasattr(self, 'df_population'):
+            self.df_population = DataFrameXS()
+
+        self.df_population['territory'] = None
+        self.df_population['position'] = None
+        self.add_attribute('direction', -1)
+
+    def directional_dispersion_from_arr_nb_steps(self, 
+                                                 arr_nb_steps,
+                                                 arr_directional_prob,                             
+                                                 condition=None,
+                                                 territory_attribute='territory',
+                                                 position_attribute='position',
+                                                 direction_attribute='direction',
+                                                 reinitialize_direction=False,
+                                                 rebound=True,
+                                                 return_path=False):
+        if self.df_population.nb_rows == 0:
+            return
+
+        arr_prob = arr_directional_prob.astype('float64')
+        arr_cumul_directional_prob = np.cumsum(arr_prob)
+        arr_cumul_directional_prob = arr_cumul_directional_prob / arr_cumul_directional_prob[-1]
+        arr_cumul_directional_prob[-1] = 1.
+
+        if reinitialize_direction:
+           self.df_population[direction_attribute] = -1 
+
+        if condition is not None:
+            arr_nb_steps = arr_nb_steps * condition
+
+
+        if rebound:
+            max_nb_rand = 2 * arr_nb_steps.sum()
+            arr_rand = np.random.uniform(0, 1, max_nb_rand)
+
+            if return_path:
+                return movement_directional_dispersion_with_varying_nb_of_steps_return_path(self.df_population[territory_attribute], 
+                                                                        self.df_population[position_attribute], 
+                                                                        arr_nb_steps, arr_cumul_directional_prob,
+                                                                        self.graph.connections, self.graph.weights,
+                                                                        arr_rand, self.df_population[direction_attribute], self.df_population['col_id'])
+            
+            movement_directional_dispersion_with_varying_nb_of_steps(self.df_population[territory_attribute], 
+                                                                     self.df_population[position_attribute], 
+                                                                     arr_nb_steps, arr_cumul_directional_prob,
+                                                                     self.graph.connections, self.graph.weights,
+                                                                     arr_rand, self.df_population[direction_attribute])
+            
+        else:
+            max_nb_rand = arr_nb_steps.sum()
+            arr_rand = np.random.uniform(0, 1, max_nb_rand)
+            raise NotImplementedError

@@ -12,7 +12,7 @@ def keep_subgraph_from_array_of_bool_equi_weight(arr_keep, connections):
             counter += 1
 
     arr_nb_connections = np.full((counter,), 0, dtype=np.int32)
-    new_arr_connections = np.full((counter, 6), -1, dtype=np.int32)
+    new_arr_connections = np.full((counter, 6), -1, dtype=np.int64)
     new_arr_weights = np.full((counter, 6), -1., dtype=np.float32)
 
     counter = 0
@@ -20,15 +20,22 @@ def keep_subgraph_from_array_of_bool_equi_weight(arr_keep, connections):
         if arr_keep[i]:
             for j in range(connections.shape[1]):
                 if connections[i][j] in dict_old_to_new:
-                    new_arr_connections[counter][arr_nb_connections[counter]] = dict_old_to_new[connections[i][j]]
+                    new_arr_connections[counter][j] = dict_old_to_new[connections[i][j]]
                     arr_nb_connections[counter] += 1
             counter += 1
 
     for i in range(arr_nb_connections.shape[0]):
-        for j in range(arr_nb_connections[i]):
-            if j + 1 == arr_nb_connections[i]:
-                new_arr_weights[i][j] = 1.
-            else:
-                new_arr_weights[i][j] = (j + 1) / arr_nb_connections[i]
+        if arr_nb_connections[i] != 0:
+            conn_from_i = new_arr_connections[i]
+            non_cum_weight_from_i = (conn_from_i >= 0) * 1. / arr_nb_connections[i]
+            weight_from_i = np.cumsum(non_cum_weight_from_i)
+            weight_from_i = weight_from_i / weight_from_i[-1]
+            new_arr_weights[i] = weight_from_i
+
+        # for j in range(arr_nb_connections[i]):
+        #     if j + 1 == arr_nb_connections[i]:
+        #         new_arr_weights[i][j] = 1.
+        #     else:
+        #         new_arr_weights[i][j] = (j + 1) / arr_nb_connections[i]
 
     return new_arr_connections, new_arr_weights

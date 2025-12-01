@@ -5,7 +5,8 @@ from .reproduction import (FindMateMonogamous,
                            FindMatePolygamous, 
                            OffspringCreationWithCustomProb,
                            ReproductionMonogamousWithMarker)
-from .movement import TerritorialMovementWithoutResistance
+from .movement import (TerritorialMovementWithoutResistance,
+                       TerritorialDirectionalMovementWithoutResistance)
 from .random_walk import SphericalRandomWalk
 from ..utils.decorators import sampy_class
 
@@ -18,6 +19,7 @@ class BasicMammal(BaseAgingAgent,
                   FindMateMonogamous,
                   OffspringCreationWithCustomProb,
                   TerritorialMovementWithoutResistance,
+                  TerritorialDirectionalMovementWithoutResistance,
                   SeasonalMortality,
                   KillPercentagePop):
     """
@@ -56,6 +58,7 @@ class BasicMammalPolygamous(BaseAgingAgent,
                             FindMatePolygamous,
                             OffspringCreationWithCustomProb,
                             TerritorialMovementWithoutResistance,
+                            TerritorialDirectionalMovementWithoutResistance,
                             SeasonalMortality,
                             KillPercentagePop):
     """

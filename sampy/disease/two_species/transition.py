@@ -56,9 +56,9 @@ class TransitionCustomProbPermanentImmunity:
 
         :param host: string, either 'host1' or 'host2'. If host1 should be targeted, put 'host1', If host2 should be
                      targeted, put 'host2'. Any other input will lead to an error.
-        :param arr_new_infected: 1d array of bool, saying which agent are newly infected and should have their
+        :param arr_new_infected: 1D array of bool, saying which agent are newly infected and should have their
                                  'infectious status counter' initialized.
-        :param arr_nb_timestep: 1d array of int. work in tandem with arr_prob, see below.
+        :param arr_nb_timestep: 1D array of int. work in tandem with arr_prob, see below.
         :param arr_prob: 1D array of float. arr_prob[i] is the probability for an agent to stay infected but not
                          contagious for arr_nb_timestep[i] time-steps.
 

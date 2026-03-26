@@ -13,3 +13,4 @@ script_test_alice_*
 .coverage
 htmlcov/*
 htmlcov
+*.prof

@@ -6,7 +6,8 @@ from .reproduction import (FindMateMonogamous,
                            OffspringCreationWithCustomProb,
                            ReproductionMonogamousWithMarker)
 from .movement import (TerritorialMovementWithoutResistance,
-                       TerritorialDirectionalMovementWithoutResistance)
+                       TerritorialDirectionalMovementWithoutResistance,
+                       SwitchMovementCriterion)
 from .random_walk import SphericalRandomWalk
 from ..utils.decorators import sampy_class
 
@@ -20,6 +21,7 @@ class BasicMammal(BaseAgingAgent,
                   OffspringCreationWithCustomProb,
                   TerritorialMovementWithoutResistance,
                   TerritorialDirectionalMovementWithoutResistance,
+                  SwitchMovementCriterion,
                   SeasonalMortality,
                   KillPercentagePop):
     """
@@ -59,6 +61,7 @@ class BasicMammalPolygamous(BaseAgingAgent,
                             OffspringCreationWithCustomProb,
                             TerritorialMovementWithoutResistance,
                             TerritorialDirectionalMovementWithoutResistance,
+                            SwitchMovementCriterion,
                             SeasonalMortality,
                             KillPercentagePop):
     """
@@ -77,6 +80,7 @@ class BasicMammalWithSCRW(BaseAgingAgent,
                           FindMateMonogamous,
                           OffspringCreationWithCustomProb,
                           TerritorialMovementWithoutResistance,
+                          SwitchMovementCriterion,
                           SphericalRandomWalk,
                           SeasonalMortality,
                           KillPercentagePop):
@@ -99,6 +103,7 @@ class BasicMammalWithMarkersAndSCRW(BaseAgingAgent,
                                     OffspringDependantOnParents,
                                     ReproductionMonogamousWithMarker,
                                     TerritorialMovementWithoutResistance,
+                                    SwitchMovementCriterion,
                                     SphericalRandomWalk,
                                     SeasonalMortality,
                                     KillPercentagePop):

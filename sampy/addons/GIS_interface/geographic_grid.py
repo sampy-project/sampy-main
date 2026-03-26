@@ -18,7 +18,7 @@ class HexGrid(BaseVertexAttributes,
     However, it is modified compared to the native SamPy one in order to
     make the interface between SamPy objects and QGIS easier. Namely, it
     allows to create geojson files that QGIS can read, allowing the user
-    to visiualize and modify the lattice (for instance, by giving new 
+    to visualize and modify the lattice (for instance, by giving new 
     attributes to the hexagonal cells).
 
     todo

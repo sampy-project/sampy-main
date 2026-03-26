@@ -1,5 +1,6 @@
 import numpy as np
 import numba as nb
+from numba.typed import List
 
 
 @nb.njit
@@ -172,3 +173,63 @@ def transmission_disease_propagation_return_type_inf(susceptible_host1, suscepti
                 counter += 1
 
     return type_inf_host1, type_inf_host2
+
+# ---------------------------------------------------------------------------------
+# contact tracing
+
+@nb.jit
+def create_list_of_contagious_per_vertices(nb_vertex, arr_con, arr_pos, arr_id):
+    list_vert_id_con = List()
+    for i in range(nb_vertex):
+        con_on_pos_i = List()
+        con_on_pos_i.append(arr_id[0])
+        con_on_pos_i.pop()
+        list_vert_id_con.append(con_on_pos_i)
+
+    arr_nb_con_per_vertex = np.full((nb_vertex,), 0, dtype=np.int32)
+    for i in range(arr_id.shape[0]):
+        if arr_con[i]:
+            arr_nb_con_per_vertex[arr_pos[i]] += 1
+            list_vert_id_con[arr_pos[i]].append(arr_id[i])
+    return arr_nb_con_per_vertex, list_vert_id_con
+
+@nb.njit
+def find_contaminating_agent_for_considered_species(arr_type_infection, arr_id, arr_pos,
+                             arr_nb_con_per_vert_host1, list_con_per_vert_host1,
+                             arr_nb_con_per_vert_host2, list_con_per_vert_host2,
+                             arr_rand):
+    rv = np.full((arr_rand.shape[0], 3), 0)
+    counter = 0
+    for i in range(arr_type_infection.shape[0]):
+        if arr_type_infection[i] > 0:
+
+            rv[counter, 0] = arr_id[i]
+
+            if arr_type_infection[i] == 1:
+                rv[counter, 1] = 1
+
+                rand_index_con = int(np.floor(arr_rand[counter] * arr_nb_con_per_vert_host1[arr_pos[i]])) % \
+                             arr_nb_con_per_vert_host1[arr_pos[i]]
+                rv[counter, 2] = list_con_per_vert_host1[arr_pos[i]][rand_index_con]
+
+            if arr_type_infection[i] == 2:
+                rv[counter, 1] = 2
+
+                rand_index_con = int(np.floor(arr_rand[counter] * arr_nb_con_per_vert_host2[arr_pos[i]])) % \
+                             arr_nb_con_per_vert_host2[arr_pos[i]]
+                rv[counter, 2] = list_con_per_vert_host2[arr_pos[i]][rand_index_con]
+
+            if arr_type_infection[i] == 3:
+
+                rand_index_con = int(np.floor(arr_rand[counter] * (arr_nb_con_per_vert_host1[arr_pos[i]] + arr_nb_con_per_vert_host2[arr_pos[i]]) )) % \
+                                                                  (arr_nb_con_per_vert_host1[arr_pos[i]] + arr_nb_con_per_vert_host2[arr_pos[i]])
+                if rand_index_con < arr_nb_con_per_vert_host1[arr_pos[i]]:
+                    rv[counter, 2] = list_con_per_vert_host1[arr_pos[i]][rand_index_con]
+                    rv[counter, 1] = 1
+                else:
+                    rv[counter, 2] = list_con_per_vert_host2[arr_pos[i]][rand_index_con - arr_nb_con_per_vert_host1[arr_pos[i]]]
+                    rv[counter, 1] = 2
+
+            counter += 1
+
+    return rv

@@ -1,13 +1,13 @@
-from .vaccination import (BaseVaccinationSingleSpeciesDisease,
-                          VaccinationSingleSpeciesDiseaseFixedDuration)
+from .vaccination import (BaseVaccinationForOneSpecies,
+                          VaccinationForOneSpeciesFixedDuration)
 from .culling import (BaseCullingSingleSpecies,
                       CullingSingleSpecies)
 from ..utils.decorators import sampy_class
 
 
 @sampy_class
-class BasicVaccination(BaseVaccinationSingleSpeciesDisease,
-                       VaccinationSingleSpeciesDiseaseFixedDuration):
+class BasicVaccination(BaseVaccinationForOneSpecies,
+                       VaccinationForOneSpeciesFixedDuration):
     """
     Provide basic vaccination capacities. Vaccines have a fixed duration, always the same for every vaccinated agent.
     When vaccinated, an agent is totally immuned to the disease.

@@ -3,9 +3,12 @@ from .jit_compiled_functions import (transmission_conditional_count,
                                      transmission_count_needed_samples,
                                      transmission_disease_propagation,
                                      transmission_disease_propagation_return_new_inf,
-                                     transmission_disease_propagation_return_type_inf)
+                                     transmission_disease_propagation_return_type_inf,
+                                     create_list_of_contagious_per_vertices,
+                                     find_contaminating_agent_for_considered_species)
 from ...utils.errors_shortcut import (check_input_array,
                                       check_col_exists_good_type)
+import pandas as pd
 
 
 class ContactTransmissionSameGraph:
@@ -160,3 +163,87 @@ class ContactTransmissionSameGraph:
                                          count_con_host1, count_con_host2,
                                          random_numbers, contact_rate_matrix)
         return rv
+    
+
+    def contact_contagion_with_tracing(self, contact_rate_matrix, position_attribute_host1='position',
+                          position_attribute_host2='position', condition_host1=None, condition_host2=None):
+        """
+        Propagate the disease by direct contact using the following methodology.
+
+        We denote by N_{v, host_i} the number of contagious agents of the species host_i on the vertex v of the graph.
+        Then, for any susceptible agent of the species host_j living on the vertex v, the probability for this agent to
+        be contaminated by an infected agent of the species host_i is given by:
+
+                            1 - (1 - contact_rate_{i,j}) ** N_{c, host_i}
+
+        In practice, for any susceptible agent, we perform two independent tests (one for each host species) and if any
+        of those test is a success, the agent is contaminated.
+
+        :param contact_rate_matrix: 2D array of floats of shape (2, 2). Here, contact_rate_matrix[0][0] is the
+                                    probability of contact contagion from host1 to host1, contact_rate_matrix[0][1] is
+                                    the probability of contact contagion from host1 to host2, etc...
+        :param position_attribute_host1: optional, string, default 'position'. Name of the agent attribute used as
+                                         position for host1.
+        :param position_attribute_host2: optional, string, default 'position'. Name of the agent attribute used as
+                                         position for host2.
+        :param condition_host1: optional, array of bool, default None. Array of boolean such that the i-th value is
+                          True if and only if the i-th agent of host1 (i.e. the agent at the line i of df_population)
+                          can be infected and transmit disease. All the agent having their corresponding value to False
+                          are protected from infection and cannot transmit the disease.
+        :param condition_host2: optional, array of bool, default None. Array of boolean such that the i-th value is
+                          True if and only if the i-th agent of host2 (i.e. the agent at the line i of df_population)
+                          can be infected and transmit disease. All the agent having their corresponding value to False
+                          are protected from infection and cannot transmit the disease.
+
+        :return: a pandas dataframe with 4 columns:
+            - id_new_infected_agents : id of newly contaminated agents;
+            - species_new_infected_agents: species of the nwely contaminated agents (either 'host_1' or 'host_2');
+            - id_contaminating_agents: id of the agent that transmited the disease;
+            - species_contaminating_agents : species of the agents that transmited the disease (either 'host_1' or 'host_2').
+        """
+        dict_contagion = self.contact_contagion(contact_rate_matrix, position_attribute_host1=position_attribute_host1,
+                                                position_attribute_host2=position_attribute_host2,
+                                                condition_host1=condition_host1, condition_host2=condition_host2,
+                                                return_arr_new_infected=True, return_type_transmission=True)
+        
+        arr_nb_con_per_vert_host1, list_con_per_vert_host1 = create_list_of_contagious_per_vertices(self.host1.graph.number_vertices,
+                                                                                                    self.host1.df_population['con_' + self.disease_name],
+                                                                                                    self.host1.df_population[position_attribute_host1],
+                                                                                                    self.host1.df_population['col_id'])
+        arr_nb_con_per_vert_host2, list_con_per_vert_host2 = create_list_of_contagious_per_vertices(self.host2.graph.number_vertices,
+                                                                                                    self.host2.df_population['con_' + self.disease_name],
+                                                                                                    self.host2.df_population[position_attribute_host2],
+                                                                                                    self.host2.df_population['col_id'])
+
+        new_infected_host1 = dict_contagion['arr_new_infected_host1']
+        type_contagion_host1 = dict_contagion['arr_type_transmission_host1']
+        tracing_host1 = find_contaminating_agent_for_considered_species( type_contagion_host1, self.host1.df_population['col_id'],
+                                                                        self.host1.df_population[position_attribute_host1],
+                                                                        arr_nb_con_per_vert_host1, list_con_per_vert_host1,
+                                                                        arr_nb_con_per_vert_host2, list_con_per_vert_host2, 
+                                                                        np.random.uniform(0, 1, new_infected_host1.sum()))
+        df_host1 = pd.DataFrame()
+        df_host1['id_new_infected_agents'] = tracing_host1[:, 0]
+        df_host1['species_contaminating_agents'] = tracing_host1[:, 1]
+        df_host1['species_contaminating_agents'] = df_host1['species_contaminating_agents'].apply(lambda y: 'host1' if y == 1 else 'host2')
+        df_host1['id_contaminating_agents'] = tracing_host1[:, 2]
+        df_host1['species_new_infected_agents'] = 'host1'
+
+        df_host1.loc[(df_host1['species_contaminating_agents'] == 1), 'species_contaminating_agents'] = 'host1'
+        
+        new_infected_host2 = dict_contagion['arr_new_infected_host2']
+        type_contagion_host2 = dict_contagion['arr_type_transmission_host2']
+        tracing_host2 = find_contaminating_agent_for_considered_species( type_contagion_host2, self.host2.df_population['col_id'],
+                                                                        self.host2.df_population[position_attribute_host2],
+                                                                        arr_nb_con_per_vert_host2, list_con_per_vert_host2, 
+                                                                        arr_nb_con_per_vert_host1, list_con_per_vert_host1,
+                                                                        np.random.uniform(0, 1, new_infected_host2.sum()))
+
+        df_host2 = pd.DataFrame()
+        df_host2['id_new_infected_agents'] = tracing_host2[:, 0]
+        df_host2['species_contaminating_agents'] = tracing_host2[:, 1]
+        df_host2['species_contaminating_agents'] = df_host2['species_contaminating_agents'].apply(lambda y: 'host2' if y == 1 else 'host1')
+        df_host2['id_contaminating_agents'] = tracing_host2[:, 2]
+        df_host2['species_new_infected_agents'] = 'host2'
+
+        return pd.concat([df_host1, df_host2], ignore_index=True)

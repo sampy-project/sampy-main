@@ -3,18 +3,18 @@ from ..pandas_xs.pandas_xs import DataFrameXS
 from .jit_compiled_functions import vaccination_apply_vaccine_from_array_condition
 
 
-class BaseVaccinationSingleSpeciesDisease:
-    def __init__(self, disease=None, **kwargs):
+class BaseVaccinationForOneSpecies:
+    def __init__(self, disease=None, host_name='host', **kwargs):
         if disease is None:
             raise ValueError(
                 "No disease object provided for the vaccination. Should be provided using kwarg 'disease'.")
         self.disease = disease
-        self.target_species = self.disease.host
+        self.target_species = getattr(self.disease, host_name)
         self.target_species.df_population['vaccinated_' + self.disease.disease_name] = False
         self.target_species.dict_default_val['vaccinated_' + self.disease.disease_name] = False
 
 
-class VaccinationSingleSpeciesDiseaseFixedDuration:
+class VaccinationForOneSpeciesFixedDuration:
     def __init__(self, duration_vaccine=None, **kwargs):
         if duration_vaccine is None:
             raise ValueError(

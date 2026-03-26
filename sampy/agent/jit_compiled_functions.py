@@ -392,7 +392,7 @@ def movement_directional_dispersion_with_varying_nb_of_steps(territory, position
                         break
 
 @nb.njit
-def movement_directional_dispersion_with_varying_nb_of_steps_return_path(territory, position, arr_nb_steps, arr_cumul_directional_prob, connections, weights, arr_rand, col_direction, col_id):
+def movement_directional_dispersion_with_varying_nb_of_steps_return_path(territory, position, arr_nb_steps, arr_cumul_directional_prob, connections, weights, arr_rand, col_direction, col_id,update_dir):
     counter_rand = 0
     r_dict = dict()
     for i in range(arr_nb_steps.shape[0]):
@@ -427,9 +427,132 @@ def movement_directional_dispersion_with_varying_nb_of_steps_return_path(territo
                             r_dict[col_id[i]][j + 1] = candidate_position
                             position[i] = candidate_position
                             territory[i] = candidate_position
-                            col_direction[i] = (col_direction[i]-3 + k) % 6
+                            if update_dir:
+                                col_direction[i] = (col_direction[i]-3 + k) % 6
                         break
     return r_dict
+
+
+@nb.njit
+def movement_criterion_density_logistic_update_count(D, beta, alpha, arr_count_agents, arr_K, arr_position, arr_rand):
+    r_arr = np.full(arr_position.shape[0], False)
+
+    for i in range(arr_position.shape[0]):        
+        p = D/(1+np.exp(-((arr_count_agents[arr_position[i]]/arr_K[arr_position[i]])-beta))**alpha)
+
+        r_arr[i] = arr_rand[i] < p
+
+        if r_arr[i]:
+           arr_count_agents[arr_position[i]] = max(arr_count_agents[arr_position[i]] - 1, 0) 
+
+    return r_arr
+
+
+@nb.njit
+def movement_criterion_density_logistic_update_count_with_agents_category(arr_category, arr_D, arr_beta, arr_alpha, arr_count_agents, arr_K, arr_position, arr_rand):
+    r_arr = np.full(arr_position.shape[0], False)
+
+    for i in range(arr_position.shape[0]):  
+        category = arr_category[i]     
+        p = arr_D[category]/(1+np.exp(-((arr_count_agents[arr_position[i]]/arr_K[arr_position[i]])-arr_beta[category]))**arr_alpha[category])
+
+        r_arr[i] = arr_rand[i] < p
+
+        if r_arr[i]:
+           arr_count_agents[arr_position[i]] = max(arr_count_agents[arr_position[i]] - 1, 0) 
+
+    return r_arr
+
+
+@nb.njit
+def movement_criterion_density_logistic_update_count_conditional(D, beta, alpha, arr_count_agents, arr_K, arr_position, arr_rand, condition):
+    r_arr = np.full(arr_position.shape[0], False)
+    counter_rand = 0
+
+    for i in range(arr_position.shape[0]):   
+        if condition[i]:     
+            p = D/(1+np.exp(-((arr_count_agents[arr_position[i]]/arr_K[arr_position[i]])-beta))**alpha)
+
+            r_arr[i] = arr_rand[counter_rand] < p
+            counter_rand += 1
+
+            if r_arr[i]:
+                arr_count_agents[arr_position[i]] = max(arr_count_agents[arr_position[i]] - 1, 0) 
+
+    return r_arr
+
+
+@nb.njit
+def movement_criterion_density_logistic_update_count_conditional_with_agents_category(arr_category, arr_D, arr_beta, arr_alpha, arr_count_agents, arr_K, arr_position, arr_rand, condition):
+    r_arr = np.full(arr_position.shape[0], False)
+    counter_rand = 0
+
+    for i in range(arr_position.shape[0]):   
+        if condition[i]:  
+            category = arr_category[i]    
+            p = arr_D[category]/(1+np.exp(-((arr_count_agents[arr_position[i]]/arr_K[arr_position[i]])-arr_beta[category]))**arr_alpha[category])
+
+            r_arr[i] = arr_rand[counter_rand] < p
+            counter_rand += 1
+
+            if r_arr[i]:
+                arr_count_agents[arr_position[i]] = max(arr_count_agents[arr_position[i]] - 1, 0) 
+
+    return r_arr
+
+
+@nb.njit
+def movement_criterion_density_logistic(D, beta, alpha, arr_count_agents, arr_K, arr_position, arr_rand):
+    r_arr = np.full(arr_position.shape[0], False)
+
+    for i in range(arr_position.shape[0]):        
+        p = D/(1+np.exp(-((arr_count_agents[arr_position[i]]/arr_K[arr_position[i]])-beta))**alpha)
+
+        r_arr[i] = arr_rand[i] < p
+    return r_arr
+
+
+@nb.njit
+def movement_criterion_density_logistic_with_agents_category(arr_category, arr_D, arr_beta, arr_alpha, arr_count_agents, arr_K, arr_position, arr_rand):
+    r_arr = np.full(arr_position.shape[0], False)
+
+    for i in range(arr_position.shape[0]):
+        category = arr_category[i]        
+        p = arr_D[category]/(1+np.exp(-((arr_count_agents[arr_position[i]]/arr_K[arr_position[i]])-arr_beta[category]))**arr_alpha[category])
+
+        r_arr[i] = arr_rand[i] < p
+    return r_arr
+
+
+@nb.njit
+def movement_criterion_density_logistic_conditional(D, beta, alpha, arr_count_agents, arr_K, arr_position, arr_rand, condition):
+    r_arr = np.full(arr_position.shape[0], False)
+    counter_rand = 0
+
+    for i in range(arr_position.shape[0]):   
+        if condition[i]:     
+            p = D/(1+np.exp(-((arr_count_agents[arr_position[i]]/arr_K[arr_position[i]])-beta))**alpha)
+
+            r_arr[i] = arr_rand[counter_rand] < p
+            counter_rand += 1
+            
+    return r_arr
+
+
+@nb.njit
+def movement_criterion_density_logistic_conditional_with_agents_category(arr_category, arr_D, arr_beta, arr_alpha, arr_count_agents, arr_K, arr_position, arr_rand, condition):
+    r_arr = np.full(arr_position.shape[0], False)
+    counter_rand = 0
+
+    for i in range(arr_position.shape[0]):   
+        if condition[i]:
+            category = arr_category[i]     
+            p = arr_D[category]/(1+np.exp(-((arr_count_agents[arr_position[i]]/arr_K[arr_position[i]])-arr_beta[category]))**arr_alpha[category])
+
+            r_arr[i] = arr_rand[counter_rand] < p
+            counter_rand += 1
+            
+    return r_arr
 # ---------------------------------------------------------------------------------------------------------------------
 # spherical random walk section
 

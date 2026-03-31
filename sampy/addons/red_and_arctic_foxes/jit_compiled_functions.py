@@ -10,17 +10,17 @@ from numba.typed import List
 def movement_directional_dispersion_with_varying_nb_of_steps(territory, position, arr_nb_steps, arr_cumul_directional_prob, 
                                                              connections, weights, arr_rand_step, arr_rand_res, col_direction, 
                                                              arr_in_res, arr_out_res, nb_retry_res, stop_mov):
-    counter_rand_step = 0 # chaque val de arr_rand_step est une val rand. Il y en a autant que 2*la somme des val de arr_nb_steps
+    counter_rand_step = 0 
     counter_rand_res = 0
-    for i in range(arr_nb_steps.shape[0]): # pour chaque agents choisi
-        for j in range(arr_nb_steps[i]): # pour chaque pas sur la semaine
+    for i in range(arr_nb_steps.shape[0]): 
+        for j in range(arr_nb_steps[i]): 
             succes_step = False
             for _ in range(nb_retry_res + 1):
-                if col_direction[i] == -1: # s'il n y a pas de direction
-                    for k in range(weights.shape[1]): # on en choisi randomly une en fonction de celles dispo par rapport a la cell dans laquelle il est
+                if col_direction[i] == -1: 
+                    for k in range(weights.shape[1]): 
                         if arr_rand_step[counter_rand_step] < weights[territory[i]][k]:
                             candidate_position = connections[territory[i]][k]
-                            if arr_rand_res[counter_rand_res] < (1-arr_out_res[territory[i]])*(1-arr_in_res[candidate_position]): #il peut faire le pas malgre la res
+                            if arr_rand_res[counter_rand_res] < (1-arr_out_res[territory[i]])*(1-arr_in_res[candidate_position]): 
                                 position[i] = connections[territory[i]][k]
                                 territory[i] = connections[territory[i]][k]
                                 col_direction[i] = k
@@ -28,12 +28,12 @@ def movement_directional_dispersion_with_varying_nb_of_steps(territory, position
                             break
                     counter_rand_res += 1        
                     counter_rand_step += 1
-                else: # si l'agent a deja une dir preferentielle
-                    for k in range(arr_cumul_directional_prob.shape[0]): # il choisit la cell voisine en fct des prob de dir
+                else: 
+                    for k in range(arr_cumul_directional_prob.shape[0]): 
                         if arr_rand_step[counter_rand_step] < arr_cumul_directional_prob[k]:
                             counter_rand_step += 1
                             candidate_position = connections[territory[i]][(col_direction[i]-3 + k) % 6]
-                            if candidate_position == -1: # s'il n'y a pas de cell dans la direction choisie on choisi aleatoirement une autre cell voisine existante
+                            if candidate_position == -1: 
                                 for l in range(weights.shape[1]):
                                     if arr_rand_step[counter_rand_step] < weights[territory[i]][l]:
                                         new_candidate_position = connections[territory[i]][l]
@@ -57,7 +57,7 @@ def movement_directional_dispersion_with_varying_nb_of_steps(territory, position
                             break
                 if succes_step:
                     break
-            if stop_mov and (not succes_step): # stop completly the agent movement if a step failed after nb_retry_res retries
+            if stop_mov and (not succes_step): 
                 break
 
 
@@ -73,14 +73,14 @@ def movement_directional_dispersion_with_varying_nb_of_steps_return_path(territo
         if arr_nb_steps[i] > 0:
             r_dict[col_id[i]] = np.full(arr_nb_steps[i] + 1, -1, dtype=connections.dtype)
             r_dict[col_id[i]][0] = territory[i]
-        for j in range(arr_nb_steps[i]): # pour chaque pas sur la semaine
+        for j in range(arr_nb_steps[i]): 
             succes_step = False
             for _ in range(nb_retry_res + 1):
-                if col_direction[i] == -1: # s'il n y a pas de direction
-                    for k in range(weights.shape[1]): # on en choisi randomly une en fonction de celles dispo par rapport a la cell dans laquelle il est
+                if col_direction[i] == -1: 
+                    for k in range(weights.shape[1]): 
                         if arr_rand_step[counter_rand_step] < weights[territory[i]][k]:
                             candidate_position = connections[territory[i]][k]
-                            if arr_rand_res[counter_rand_res] < (1-arr_out_res[territory[i]])*(1-arr_in_res[candidate_position]): #il peut faire le pas malgre la res
+                            if arr_rand_res[counter_rand_res] < (1-arr_out_res[territory[i]])*(1-arr_in_res[candidate_position]):
                                 # r_dict[col_id[i]][j + 1] = connections[territory[i]][k]
                                 position[i] = connections[territory[i]][k]
                                 territory[i] = connections[territory[i]][k]
@@ -89,12 +89,12 @@ def movement_directional_dispersion_with_varying_nb_of_steps_return_path(territo
                             break
                     counter_rand_res += 1        
                     counter_rand_step += 1
-                else: # si l'agent a deja une dir preferentielle
-                    for k in range(arr_cumul_directional_prob.shape[0]): # il choisit la cell voisine en fct des prob de dir
+                else: 
+                    for k in range(arr_cumul_directional_prob.shape[0]): 
                         if arr_rand_step[counter_rand_step] < arr_cumul_directional_prob[k]:
                             counter_rand_step += 1
                             candidate_position = connections[territory[i]][(col_direction[i]-3 + k) % 6]
-                            if candidate_position == -1: # s'il n'y a pas de cell dans la direction choisie on choisi aleatoirement une autre cell voisine existante
+                            if candidate_position == -1: 
                                 for l in range(weights.shape[1]):
                                     if arr_rand_step[counter_rand_step] < weights[territory[i]][l]:
                                         new_candidate_position = connections[territory[i]][l]
@@ -107,12 +107,12 @@ def movement_directional_dispersion_with_varying_nb_of_steps_return_path(territo
                                         break
                                 counter_rand_res += 1
                                 counter_rand_step += 1
-                            else: # s'il y a cell
+                            else:
                                 if arr_rand_res[counter_rand_res] < (1-arr_out_res[territory[i]])*(1-arr_in_res[candidate_position]): 
                                     # r_dict[col_id[i]][j + 1] = candidate_position
                                     position[i] = candidate_position
                                     territory[i] = candidate_position
-                                    if update_dir: ## pour disp long distance = False
+                                    if update_dir: 
                                         col_direction[i] = (col_direction[i]-3 + k) % 6
                                     succes_step = True
                                 else:
@@ -125,7 +125,7 @@ def movement_directional_dispersion_with_varying_nb_of_steps_return_path(territo
                 if succes_step:
                     break
 
-            if stop_mov and (not succes_step): # stop completly the agent movement if a step failed after nb_retry_res retries
+            if stop_mov and (not succes_step): 
                 break
 
     return r_dict
@@ -138,12 +138,12 @@ def update_id_if_needed(col_id, col_border, dict_path, next_available_id, col_pr
     arr_last_border_cell = np.full(col_id.shape, -1) 
 
     for i in range(col_id.shape[0]): 
-        if col_id[i] not in dict_path: # on recupere les id des agents ayant fait un mvt
+        if col_id[i] not in dict_path: 
             continue
 
         actual_prob = 1.
         last_border_cell = -1
-        for j in range(dict_path[col_id[i]].shape[0]): # on recupere pour chaque agent qui nous interesse la proba de changement id
+        for j in range(dict_path[col_id[i]].shape[0]): 
             if col_border[dict_path[col_id[i]][j]]:
                 last_border_cell = dict_path[col_id[i]][j]
                 actual_prob = actual_prob * (1 - col_prob_change_id[last_border_cell])
@@ -212,7 +212,7 @@ def update_rabies_if_needed(arr_has_changed_id, arr_last_border_cell, col_prob_c
             col_con_cnt[i] = 0
 
             # test if the new agents is infected
-            if arr_rand_has_rabies[counter_has_rabies] < col_prob_change_rabies[arr_last_border_cell[i]]: # the agent has rabies
+            if arr_rand_has_rabies[counter_has_rabies] < col_prob_change_rabies[arr_last_border_cell[i]]: 
                 col_inf_status[i] = True
                 # now we need to pick the number of weeks the agent remains infected
                 col_inf_cnt[i] = arr_nb_timestep_inf[counter_has_rabies]
